@@ -115,10 +115,20 @@ int CALLBACK WinMain(
                     if (!pTexture) pTexture = OGetTexture(filename.c_str());
                     break;
             }
-            OSB->drawRectScaled9(getTextureForState(pControl, scale9.image.filename),
-                                 onut::UI2Onut(rect), 
-                                 onut::UI2Onut(scale9.padding), 
-                                 onut::UI2Onut(scale9.image.color));
+            if (scale9.isRepeat)
+            {
+                OSB->drawRectScaled9RepeatCenters(getTextureForState(pControl, scale9.image.filename),
+                                                  onut::UI2Onut(rect),
+                                                  onut::UI2Onut(scale9.padding),
+                                                  onut::UI2Onut(scale9.image.color));
+            }
+            else
+            {
+                OSB->drawRectScaled9(getTextureForState(pControl, scale9.image.filename),
+                                     onut::UI2Onut(rect),
+                                     onut::UI2Onut(scale9.padding),
+                                     onut::UI2Onut(scale9.image.color));
+            }
         };
 
         g_pUIContext->drawText = [=](onut::UIControl* pControl, const onut::sUIRect& rect, const onut::sUITextComponent& text)
