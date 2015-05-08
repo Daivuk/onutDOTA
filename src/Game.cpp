@@ -6,6 +6,7 @@ void hookButtonSounds(onut::UIControl *pScreen);
 Game::Game()
 {
     pUIScreen = new onut::UIControl("../../assets/ui/game.json");
+    pUIScreen->retain();
     hookButtonSounds(pUIScreen);
 }
 

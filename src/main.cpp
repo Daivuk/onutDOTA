@@ -2,6 +2,7 @@
 #include "onut.h"
 #include "Game.h"
 #include "Main.h"
+#include "Login.h"
 #include "eg.h"
 
 onut::UIContext *g_pUIContext = nullptr;
@@ -9,17 +10,17 @@ View *g_pCurrentView = nullptr;
 
 void hookButtonSounds(onut::UIControl *pCtrl)
 {
-    if (dynamic_cast<onut::UIButton *>(pCtrl))
-    {
-        pCtrl->onMouseEnter = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
-        {
-            OPlaySound("buttonHover.wav");
-        };
-        pCtrl->onClick = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
-        {
-            OPlaySound("buttonClick.wav");
-        };
-    }
+    //if (dynamic_cast<onut::UIButton *>(pCtrl))
+    //{
+    //    pCtrl->onMouseEnter = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
+    //    {
+    //        OPlaySound("buttonHover.wav");
+    //    };
+    //    pCtrl->onClick = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
+    //    {
+    //        OPlaySound("buttonClick.wav");
+    //    };
+    //}
     if (dynamic_cast<onut::UITextBox *>(pCtrl))
     {
         pCtrl->onMouseEnter = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
@@ -51,6 +52,17 @@ int CALLBACK WinMain(
     onut::run([]
     {
         g_pUIContext = new onut::UIContext(onut::sUIVector2{OScreenWf, OScreenHf});
+
+        g_pUIContext->addStyle<onut::UIPanel>("blur", [](const onut::UIPanel* pControl, const onut::sUIRect& rect)
+        {
+            OSB->end();
+            egEnable(EG_BLUR);
+            egBlur(32.f);
+            egPostProcess();
+            ORenderer->resetState();
+            OSB->begin();
+            OSB->drawRect(nullptr, onut::UI2Onut(rect), Color(0, 0, 0, .35f));
+        });
 
         auto getTextureForState = [](onut::UIControl *pControl, const std::string &filename)
         {
@@ -136,15 +148,15 @@ int CALLBACK WinMain(
             if (text.text.empty()) return;
             auto align = onut::UI2Onut(text.font.align);
             auto oRect = onut::UI2Onut(rect);
+            auto pFont = OGetBMFont(text.font.typeFace.c_str());
 
-            OGetBMFont(text.font.typeFace.c_str())->draw<>(text.text,
-                                                           ORectAlign<>(oRect, align),
-                                                           onut::UI2Onut(text.font.color),
-                                                           OSB, 
-                                                           align);
+            if (pFont)
+            {
+                pFont->draw<>(text.text, ORectAlign<>(oRect, align), onut::UI2Onut(text.font.color), OSB, align);
+            }
         };
 
-        g_pCurrentView = new Main();
+        g_pCurrentView = new Login();
         g_pCurrentView->enter();
 
         OWindow->onWrite = [](char c)

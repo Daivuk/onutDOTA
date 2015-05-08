@@ -8,15 +8,21 @@ extern View *g_pCurrentView;
 Main::Main()
 {
     pUIScreen = new onut::UIControl("../../assets/ui/main.json");
+    pUIScreen->retain();
     hookButtonSounds(pUIScreen);
 
     pUIScreen->getChild("btnPlay")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
+        OPlaySound("buttonClick.wav");
         delete g_pCurrentView;
         g_pCurrentView = new Game();
         g_pCurrentView->enter();
     };
-    pUIScreen->getChild("btnQuit")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&){PostQuitMessage(0); };
+    pUIScreen->getChild("btnQuit")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
+    {
+        OPlaySound("buttonClick.wav");
+        PostQuitMessage(0);
+    };
 }
 
 Main::~Main()
