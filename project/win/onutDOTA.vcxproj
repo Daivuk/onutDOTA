@@ -82,8 +82,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\Credits.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Globals.cpp" />
+    <ClCompile Include="..\..\src\Joining.cpp" />
     <ClCompile Include="..\..\src\Login.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\MainView.cpp" />
@@ -91,8 +93,10 @@
     <ClCompile Include="..\..\src\View.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\Credits.h" />
     <ClInclude Include="..\..\src\Game.h" />
     <ClInclude Include="..\..\src\Globals.h" />
+    <ClInclude Include="..\..\src\Joining.h" />
     <ClInclude Include="..\..\src\Login.h" />
     <ClInclude Include="..\..\src\Main.h" />
     <ClInclude Include="..\..\src\SignUp.h" />

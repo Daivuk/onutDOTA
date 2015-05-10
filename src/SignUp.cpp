@@ -103,7 +103,7 @@ SignUp::SignUp()
                     if (!doc.IsNull() && !doc["data"].IsNull() &&
                         doc["data"]["user"].IsObject())
                     {
-                        Globals::user = Globals::userFromJson(doc["data"]["user"]);
+                        Globals::setMyUser(Globals::userFromJson(doc["data"]["user"]));
                         delete g_pCurrentView;
                         g_pCurrentView = new Main();
                         g_pCurrentView->enter();

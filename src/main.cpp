@@ -4,6 +4,7 @@
 #include "Main.h"
 #include "Login.h"
 #include "eg.h"
+#include "Globals.h"
 
 onut::UIContext *g_pUIContext = nullptr;
 View *g_pCurrentView = nullptr;
@@ -52,6 +53,11 @@ int CALLBACK WinMain(
     onut::run([]
     {
         g_pUIContext = new onut::UIContext(onut::sUIVector2{OScreenWf, OScreenHf});
+
+        g_pUIContext->onClipping = [](bool enabled, const onut::sUIRect& rect)
+        {
+        //    ORenderer->setScissor(enabled, onut::UI2Onut(rect));
+        };
 
         g_pUIContext->addStyle<onut::UIPanel>("blur", [](const onut::UIPanel* pControl, const onut::sUIRect& rect)
         {
@@ -187,6 +193,7 @@ int CALLBACK WinMain(
             }
         };
 
+        Globals::init();
         g_pCurrentView = new Login();
         g_pCurrentView->enter();
 

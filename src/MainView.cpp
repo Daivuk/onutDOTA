@@ -1,5 +1,7 @@
 #include "Main.h"
-#include "Game.h"
+#include "Joining.h"
+#include "Globals.h"
+#include "Credits.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -9,19 +11,27 @@ Main::Main()
 {
     pUIScreen = new onut::UIControl("../../assets/ui/main.json");
     pUIScreen->retain();
+    pUIScreen->add(Globals::pUIHeader);
     hookButtonSounds(pUIScreen);
 
     pUIScreen->getChild("btnPlay")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
         delete g_pCurrentView;
-        g_pCurrentView = new Game();
+        g_pCurrentView = new Joining();
         g_pCurrentView->enter();
     };
     pUIScreen->getChild("btnQuit")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
         PostQuitMessage(0);
+    };
+    pUIScreen->getChild("btnCredits")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
+    {
+        OPlaySound("buttonClick.wav");
+        delete g_pCurrentView;
+        g_pCurrentView = new Credits();
+        g_pCurrentView->enter();
     };
 }
 
