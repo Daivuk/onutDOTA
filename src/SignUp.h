@@ -12,4 +12,8 @@ public:
     void render() override;
 
     OAnimf windowAnimDown;
+    bool isUsernameAvailable = false;
+    bool usernameCheckAgain = false;
+    bool usernameIsChecking = false;
+    std::string usernameToCheck;
 };

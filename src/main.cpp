@@ -93,6 +93,23 @@ int CALLBACK WinMain(
             return pTexture;
         };
 
+        g_pUIContext->addStyle<onut::UIImage>("spinner", [=](const onut::UIImage* pControl, const onut::sUIRect& rect)
+        {
+            static uint32_t frameAnim = 0;
+            frameAnim++;
+            auto frame = (frameAnim / 6) % 8;
+            Vector4 uvs{
+                static_cast<float>(frame) / 8.f,
+                0,
+                static_cast<float>(frame + 1) / 8.f,
+                1
+            };
+            OSB->drawRectWithUVs(getTextureForState((onut::UIControl *)pControl, pControl->scale9Component.image.filename),
+                                 onut::UI2Onut(rect), 
+                                 uvs, 
+                                 onut::UI2Onut(pControl->scale9Component.image.color));
+        });
+
         g_pUIContext->drawRect = [=](onut::UIControl *pControl, const onut::sUIRect &rect, const onut::sUIColor &color)
         {
             OSB->drawRect(nullptr, onut::UI2Onut(rect), onut::UI2Onut(color));
@@ -149,10 +166,24 @@ int CALLBACK WinMain(
             auto align = onut::UI2Onut(text.font.align);
             auto oRect = onut::UI2Onut(rect);
             auto pFont = OGetBMFont(text.font.typeFace.c_str());
+            auto oColor = onut::UI2Onut(text.font.color);
+            if (pControl->getState(*g_pUIContext) == onut::eUIState::DISABLED)
+            {
+                oColor = {.4f, .4f, .4f, 1};
+            }
 
             if (pFont)
             {
-                pFont->draw<>(text.text, ORectAlign<>(oRect, align), onut::UI2Onut(text.font.color), OSB, align);
+                if (pControl->getStyleName() == "password")
+                {
+                    static std::string pwd;
+                    pwd.resize(text.text.size(), '*');
+                    pFont->draw<>(pwd, ORectAlign<>(oRect, align), oColor, OSB, align);
+                }
+                else
+                {
+                    pFont->draw<>(text.text, ORectAlign<>(oRect, align), oColor, OSB, align);
+                }
             }
         };
 
