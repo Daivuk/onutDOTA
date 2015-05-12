@@ -56,7 +56,9 @@ int CALLBACK WinMain(
 
         g_pUIContext->onClipping = [](bool enabled, const onut::sUIRect& rect)
         {
-        //    ORenderer->setScissor(enabled, onut::UI2Onut(rect));
+            OSB->end();
+            ORenderer->setScissor(enabled, onut::UI2Onut(rect));
+            OSB->begin();
         };
 
         g_pUIContext->addStyle<onut::UIPanel>("blur", [](const onut::UIPanel* pControl, const onut::sUIRect& rect)

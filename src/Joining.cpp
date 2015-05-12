@@ -24,7 +24,7 @@ Joining::Joining()
         g_pCurrentView->enter();
     };
 
-    //addToRow(pUIScreen->getChild("topRow"), buildCardFromUser(Globals::myUser));
+    addToRow(pUIScreen->getChild("topRow"), buildCardFromUser(Globals::myUser));
 
     // Send request to server to join to a game
     OAsync([this](Globals::SUser user)
