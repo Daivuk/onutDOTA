@@ -4,6 +4,7 @@ extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
 
 Globals::SUser Globals::myUser;
+Globals::SGame Globals::myGame;
 onut::UIControl *Globals::pUIHeader = nullptr;
 
 void Globals::init()

@@ -17,7 +17,15 @@ public:
         std::string username;
         int64_t level;
         int64_t xp;
+        int team;
     } myUser;
+
+    static struct SGame
+    {
+        int64_t id;
+        uint32_t seed;
+        std::vector<SUser> users;
+    } myGame;
 
     static void setMyUser(const SUser &user);
 
