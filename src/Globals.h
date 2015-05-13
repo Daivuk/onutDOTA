@@ -29,7 +29,8 @@ public:
 
     static void setMyUser(const SUser &user);
 
-    static SUser userFromJson(const rapidjson::Value &json);
+    static bool userFromJson(SUser &user, const rapidjson::Value &json);
+    static bool gameFromJson(SGame &game, const rapidjson::Value &json);
 
     static onut::UIControl *pUIHeader;
 };

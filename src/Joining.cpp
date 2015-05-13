@@ -19,14 +19,14 @@ Joining::Joining()
     pUIScreen->getChild("btnCancel")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        delete g_pCurrentView;
+        g_pCurrentView->release();
         g_pCurrentView = new Main();
+        g_pCurrentView->retain();
         g_pCurrentView->enter();
     };
 
-//    addToRow(pUIScreen->getChild("topRow"), buildCardFromUser(Globals::myUser));
-
     // Send request to server to join to a game
+    retain();
     OAsync([this](Globals::SUser user)
     {
         auto ret = OStringFromURL("http://www.daivuk.com/onutDOTA/joinrequest.php",
@@ -35,14 +35,23 @@ Joining::Joining()
         {
             OSync([this, ret]
             {
-                showError(ret);
+                if (getRefCount() > 1)
+                {
+                    showError(ret);
+                }
+                release();
             });
         });
         if (!ret.empty())
         {
             OSync([this, ret]
             {
-                updateGameContent(ret);
+                if (getRefCount() > 1)
+                {
+                    state = eState::WAITING;
+                    updateGameContent(ret);
+                }
+                release();
             });
         }
     },
@@ -63,6 +72,7 @@ void Joining::update()
     auto now = std::chrono::steady_clock::now();
     if (now - lastUpdateRequestTime >= std::chrono::seconds(1))
     {
+        lastUpdateRequestTime = now;
         if (state == eState::WAITING)
         {
             requestUpdate();
@@ -76,7 +86,6 @@ void Joining::render()
 
 void Joining::updateGameContent(const std::string& json)
 {
-    // Parse json and validate
     rapidjson::Document doc;
     doc.Parse<0>(json.c_str());
     if (doc.IsNull())
@@ -85,42 +94,30 @@ void Joining::updateGameContent(const std::string& json)
         return;
     }
     const auto &jsonData = doc["data"];
-    if (!jsonData.IsObject())
-    {
-        showError("{\"message\":\"Error retreiving game info. code 2\"}");
-        return;
-    }
-    const auto &jsonGame = jsonData["game"];
-    const auto &jsonUsers = jsonData["users"];
-    if (!jsonGame.IsObject())
+
+    // Parse users
+    if (!Globals::gameFromJson(Globals::myGame, jsonData))
     {
         showError("{\"message\":\"Error retreiving game info. code 4\"}");
         return;
     }
-    if (!jsonUsers.IsArray())
-    {
-        showError("{\"message\":\"Error retreiving game info. code 5\"}");
-        return;
-    }
 
-    // Parse game
-    Globals::myGame = {0};
-    const auto &jsonGameId = jsonGame["id"];
-    if (!jsonGameId.IsInt64())
+    // Refresh rows
+    auto pTopRow = pUIScreen->getChild("topRow");
+    auto pBottomRow = pUIScreen->getChild("bottomRow");
+    pTopRow->removeAll();
+    pBottomRow->removeAll();
+    for (const auto &user : Globals::myGame.users)
     {
-        showError("{\"message\":\"Error retreiving game info. code 6\"}");
-        return;
+        if (user.team == 0)
+        {
+            addToRow(pTopRow, buildCardFromUser(user));
+        }
+        else
+        {
+            addToRow(pBottomRow, buildCardFromUser(user));
+        }
     }
-    Globals::myGame.id = jsonGameId.GetInt64();
-    const auto &jsonGameSeed = jsonGame["seed"];
-    if (!jsonGameSeed.IsUint())
-    {
-        showError("{\"message\":\"Error retreiving game info. code 7\"}");
-        return;
-    }
-    Globals::myGame.seed = jsonGameSeed.GetUint();
-
-    // Parse users
 }
 
 void Joining::showError(const std::string &json)
@@ -137,8 +134,9 @@ void Joining::showError(const std::string &json)
     pUIScreen->getChild<onut::UILabel>("lblError")->textComponent.text = errorMsg;
     pUIScreen->getChild("btnOK")->onClick = [this](onut::UIControl*, const onut::UIMouseEvent&)
     {
-        delete g_pCurrentView;
+        g_pCurrentView->release();
         g_pCurrentView = new Main();
+        g_pCurrentView->retain();
         g_pCurrentView->enter();
     };
 }
@@ -147,6 +145,7 @@ void Joining::requestUpdate()
 {
     if (!lastRequestCompleted) return;
     lastRequestCompleted = false;
+    retain();
     OAsync([this](Globals::SUser user, Globals::SGame game)
     {
         auto ret = OStringFromURL("http://www.daivuk.com/onutDOTA/gameinfo.php",
@@ -159,14 +158,23 @@ void Joining::requestUpdate()
         {
             OSync([this, ret]
             {
-                showError(ret);
+                if (getRefCount() > 1)
+                {
+                    showError(ret);
+                }
+                release();
             });
         });
         if (!ret.empty())
         {
             OSync([this, ret]
             {
-                updateGameContent(ret);
+                if (getRefCount() > 1)
+                {
+                    updateGameContent(ret);
+                    lastRequestCompleted = true;
+                }
+                release();
             });
         }
     }, Globals::myUser, Globals::myGame);

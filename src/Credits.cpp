@@ -16,8 +16,9 @@ Credits::Credits()
     pUIScreen->getChild("btnBack")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        delete g_pCurrentView;
+        g_pCurrentView->release();
         g_pCurrentView = new Main();
+        g_pCurrentView->retain();
         g_pCurrentView->enter();
     };
 }

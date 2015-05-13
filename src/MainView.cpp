@@ -17,8 +17,9 @@ Main::Main()
     pUIScreen->getChild("btnPlay")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        delete g_pCurrentView;
+        g_pCurrentView->release();
         g_pCurrentView = new Joining();
+        g_pCurrentView->retain();
         g_pCurrentView->enter();
     };
     pUIScreen->getChild("btnQuit")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
@@ -29,8 +30,9 @@ Main::Main()
     pUIScreen->getChild("btnCredits")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        delete g_pCurrentView;
+        g_pCurrentView->release();
         g_pCurrentView = new Credits();
+        g_pCurrentView->retain();
         g_pCurrentView->enter();
     };
 }

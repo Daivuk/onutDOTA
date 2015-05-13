@@ -49,8 +49,9 @@ SignUp::SignUp()
     pUIScreen->getChild("btnCancel")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        delete g_pCurrentView;
+        g_pCurrentView->release();
         g_pCurrentView = new Login();
+        g_pCurrentView->retain();
         g_pCurrentView->enter();
     };
     pUIScreen->getChild("btnSignUp")->onClick = [this](onut::UIControl*, const onut::UIMouseEvent&)
@@ -72,6 +73,7 @@ SignUp::SignUp()
 
         // Sign up async
         pUIScreen->getChild("signingup")->isVisible = true;
+        retain();
         OAsync([this](std::string username, std::string email, std::string password)
         {
             auto ret = OStringFromURL("http://www.daivuk.com/onutDOTA/signup.php",
@@ -80,34 +82,44 @@ SignUp::SignUp()
             {
                 OSync([this, ret, email]
                 {
-                    OSettings->setUserSetting("email", email);
-                    OSettings->setUserSetting("password", "");
-                    pUIScreen->getChild("signingup")->isVisible = false;
-                    rapidjson::Document doc;
-                    doc.Parse<0>(ret.c_str());
-                    if (!doc.IsNull() && doc["message"].IsString())
+                    if (getRefCount() > 1)
                     {
-                        pUIScreen->getChild("lblError")->isVisible = true;
-                        pUIScreen->getChild<onut::UILabel>("lblError")->textComponent.text = doc["message"].GetString();
+                        OSettings->setUserSetting("email", email);
+                        OSettings->setUserSetting("password", "");
+                        pUIScreen->getChild("signingup")->isVisible = false;
+                        rapidjson::Document doc;
+                        doc.Parse<0>(ret.c_str());
+                        if (!doc.IsNull() && doc["message"].IsString())
+                        {
+                            pUIScreen->getChild("lblError")->isVisible = true;
+                            pUIScreen->getChild<onut::UILabel>("lblError")->textComponent.text = doc["message"].GetString();
+                        }
                     }
+                    release();
                 });
             });
             if (!ret.empty())
             {
                 OSync([this, ret, email, password]
                 {
-                    OSettings->setUserSetting("email", email);
-                    OSettings->setUserSetting("password", pUIScreen->getChild<onut::UITextBox>("txtPassword")->textComponent.text);
-                    rapidjson::Document doc;
-                    doc.Parse<0>(ret.c_str());
-                    if (!doc.IsNull() && !doc["data"].IsNull() &&
-                        doc["data"]["user"].IsObject())
+                    if (getRefCount() > 1)
                     {
-                        Globals::setMyUser(Globals::userFromJson(doc["data"]["user"]));
-                        delete g_pCurrentView;
-                        g_pCurrentView = new Main();
-                        g_pCurrentView->enter();
+                        OSettings->setUserSetting("email", email);
+                        OSettings->setUserSetting("password", pUIScreen->getChild<onut::UITextBox>("txtPassword")->textComponent.text);
+                        rapidjson::Document doc;
+                        doc.Parse<0>(ret.c_str());
+                        if (!doc.IsNull() && !doc["data"].IsNull() &&
+                            doc["data"]["user"].IsObject())
+                        {
+                            Globals::SUser user;
+                            Globals::userFromJson(user, doc["data"]["user"]);
+                            Globals::setMyUser(user);
+                            delete g_pCurrentView;
+                            g_pCurrentView = new Main();
+                            g_pCurrentView->enter();
+                        }
                     }
+                    release();
                 });
             }
         }, pUIScreen->getChild<onut::UITextBox>("txtUsername")->textComponent.text,
@@ -141,43 +153,55 @@ void SignUp::update()
         pUIScreen->getChild("available")->isVisible = false;
         pUIScreen->getChild("taken")->isVisible = false;
         pUIScreen->getChild("spinner")->isVisible = true;
+        retain();
         OAsync([this](std::string username)
         {
             auto ret = OStringFromURL("http://www.daivuk.com/onutDOTA/checkusrname.php",
                                       {{"username", username}},
                                       [this](long status, const std::string &ret)
             {
-                rapidjson::Document doc;
-                doc.Parse<0>(ret.c_str());
-                if (!doc.IsNull() && !doc["message"].IsString())
+                OSync([this, ret]
                 {
-                    pUIScreen->getChild("lblError")->isVisible = true;
-                    pUIScreen->getChild<onut::UILabel>("lblError")->textComponent.text = doc["message"].GetString();
-                }
+                    if (getRefCount() > 1)
+                    {
+                        rapidjson::Document doc;
+                        doc.Parse<0>(ret.c_str());
+                        if (!doc.IsNull() && !doc["message"].IsString())
+                        {
+                            pUIScreen->getChild("lblError")->isVisible = true;
+                            pUIScreen->getChild<onut::UILabel>("lblError")->textComponent.text = doc["message"].GetString();
+                        }
+                    }
+                    release();
+                });
             });
             OSync([this, ret]
             {
-                pUIScreen->getChild("spinner")->isVisible = false;
-                pUIScreen->getChild("available")->isVisible = false;
-                pUIScreen->getChild("taken")->isVisible = false;
-                usernameIsChecking = false;
-
-                rapidjson::Document doc;
-                doc.Parse<0>(ret.c_str());
-                if (!doc.IsNull() && !doc["data"].IsNull() && doc["data"]["available"].IsBool())
+                if (getRefCount() > 1)
                 {
-                    isUsernameAvailable = doc["data"]["available"].GetBool();
-                    if (isUsernameAvailable)
+                    pUIScreen->getChild("spinner")->isVisible = false;
+                    pUIScreen->getChild("available")->isVisible = false;
+                    pUIScreen->getChild("taken")->isVisible = false;
+                    usernameIsChecking = false;
+
+                    rapidjson::Document doc;
+                    doc.Parse<0>(ret.c_str());
+                    if (!doc.IsNull() && !doc["data"].IsNull() && doc["data"]["available"].IsBool())
                     {
-                        pUIScreen->getChild("available")->isVisible = true;
-                        pUIScreen->getChild("taken")->isVisible = false;
-                    }
-                    else
-                    {
-                        pUIScreen->getChild("available")->isVisible = false;
-                        pUIScreen->getChild("taken")->isVisible = true;
+                        isUsernameAvailable = doc["data"]["available"].GetBool();
+                        if (isUsernameAvailable)
+                        {
+                            pUIScreen->getChild("available")->isVisible = true;
+                            pUIScreen->getChild("taken")->isVisible = false;
+                        }
+                        else
+                        {
+                            pUIScreen->getChild("available")->isVisible = false;
+                            pUIScreen->getChild("taken")->isVisible = true;
+                        }
                     }
                 }
+                release();
             });
         }, usernameToCheck);
     }

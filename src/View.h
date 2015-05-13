@@ -1,7 +1,7 @@
 #pragma once
 #include "onut.h"
 
-class View
+class View : public onut::Object
 {
 public:
     virtual ~View() {}

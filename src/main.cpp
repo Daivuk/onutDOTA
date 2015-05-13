@@ -2,6 +2,7 @@
 #include "onut.h"
 #include "Game.h"
 #include "Main.h"
+#include "test.h"
 #include "Login.h"
 #include "eg.h"
 #include "Globals.h"
