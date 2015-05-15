@@ -90,7 +90,6 @@
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\MainView.cpp" />
     <ClCompile Include="..\..\src\SignUp.cpp" />
-    <ClCompile Include="..\..\src\test.cpp" />
     <ClCompile Include="..\..\src\View.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -101,7 +100,6 @@
     <ClInclude Include="..\..\src\Login.h" />
     <ClInclude Include="..\..\src\Main.h" />
     <ClInclude Include="..\..\src\SignUp.h" />
-    <ClInclude Include="..\..\src\test.h" />
     <ClInclude Include="..\..\src\View.h" />
   </ItemGroup>
   <ItemGroup>
