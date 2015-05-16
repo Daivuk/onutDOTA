@@ -6,6 +6,7 @@ void hookButtonSounds(onut::UIControl *pScreen);
 Globals::SUser Globals::myUser;
 Globals::SGame Globals::myGame;
 onut::UIControl *Globals::pUIHeader = nullptr;
+onut::RTS *Globals::pRTS = nullptr;
 
 void Globals::init()
 {
@@ -25,6 +26,16 @@ bool Globals::userFromJson(SUser &user, const rapidjson::Value &json)
     if (json["id"].IsInt64()) user.id = json["id"].GetInt64();
     if (json["xp"].IsInt64()) user.xp = json["xp"].GetInt64();
     if (json["level"].IsInt64()) user.level = json["level"].GetInt64();
+    if (json["teamId"].IsInt()) user.team = json["teamId"].GetInt();
+    user.ipPort.clear();
+    if (json["ipPort"].IsString())
+    {
+        auto ipPort = json["ipPort"].GetString();
+        if (ipPort != "null")
+        {
+            user.ipPort = ipPort;
+        }
+    }
 
     return true;
 }

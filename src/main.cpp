@@ -2,7 +2,6 @@
 #include "onut.h"
 #include "Game.h"
 #include "Main.h"
-#include "test.h"
 #include "Login.h"
 #include "eg.h"
 #include "Globals.h"
@@ -12,17 +11,17 @@ View *g_pCurrentView = nullptr;
 
 void hookButtonSounds(onut::UIControl *pCtrl)
 {
-    //if (dynamic_cast<onut::UIButton *>(pCtrl))
-    //{
-    //    pCtrl->onMouseEnter = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
-    //    {
-    //        OPlaySound("buttonHover.wav");
-    //    };
-    //    pCtrl->onClick = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
-    //    {
-    //        OPlaySound("buttonClick.wav");
-    //    };
-    //}
+    if (dynamic_cast<onut::UIButton *>(pCtrl))
+    {
+        pCtrl->onMouseEnter = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
+        {
+            OPlaySound("buttonHover.wav");
+        };
+        pCtrl->onClick = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)
+        {
+            OPlaySound("buttonClick.wav");
+        };
+    }
     if (dynamic_cast<onut::UITextBox *>(pCtrl))
     {
         pCtrl->onMouseEnter = [](onut::UIControl* pCtrl, const onut::UIMouseEvent& evt)

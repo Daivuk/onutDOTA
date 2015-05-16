@@ -56,7 +56,7 @@ Login::Login()
         pUIScreen->getChild("signingin")->isVisible = true;
         OAsync([this](std::string email, std::string password)
         {
-            auto ret = OStringFromURL("http://www.daivuk.com/onutDOTA/signin.php",
+            auto ret = OHTTPPost("http://www.daivuk.com/onutDOTA/signin.php",
                 {{"email", email}, {"password", password}},
             [this, email](long status, const std::string &ret)
             {

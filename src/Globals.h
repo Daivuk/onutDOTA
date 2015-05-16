@@ -18,6 +18,7 @@ public:
         int64_t level;
         int64_t xp;
         int team;
+        std::string ipPort;
     } myUser;
 
     static struct SGame
@@ -33,4 +34,5 @@ public:
     static bool gameFromJson(SGame &game, const rapidjson::Value &json);
 
     static onut::UIControl *pUIHeader;
+    static onut::RTS *pRTS;
 };

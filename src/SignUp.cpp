@@ -76,7 +76,7 @@ SignUp::SignUp()
         retain();
         OAsync([this](std::string username, std::string email, std::string password)
         {
-            auto ret = OStringFromURL("http://www.daivuk.com/onutDOTA/signup.php",
+            auto ret = OHTTPPost("http://www.daivuk.com/onutDOTA/signup.php",
                                       {{"username", username}, {"email", email}, {"password", password}}, 
                                       [this, email](long status, const std::string &ret)
             {
@@ -156,7 +156,7 @@ void SignUp::update()
         retain();
         OAsync([this](std::string username)
         {
-            auto ret = OStringFromURL("http://www.daivuk.com/onutDOTA/checkusrname.php",
+            auto ret = OHTTPPost("http://www.daivuk.com/onutDOTA/checkusrname.php",
                                       {{"username", username}},
                                       [this](long status, const std::string &ret)
             {

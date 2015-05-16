@@ -21,6 +21,8 @@ public:
     void requestUpdate();
     void updateGameContent(const std::string& json);
     void showError(const std::string &json);
+    void natPunchThrough();
+    void sendIPPort();
 
     void addToRow(onut::UIControl *pRow, onut::UIControl *pControl);
     onut::UIControl *buildCardFromUser(const Globals::SUser &user);
