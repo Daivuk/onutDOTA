@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include "Joining.h"
 #include "Main.h"
+#include "Game.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -20,10 +21,14 @@ Joining::Joining()
     pUIScreen->getChild("btnCancel")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        g_pCurrentView->release();
-        g_pCurrentView = new Main();
-        g_pCurrentView->retain();
-        g_pCurrentView->enter();
+        changeView<Main>();
+    };
+
+    pUIScreen->getChild("btnForceStart")->isVisible = true;
+    pUIScreen->getChild("btnForceStart")->onClick = [this](onut::UIControl*, const onut::UIMouseEvent&)
+    {
+        OPlaySound("buttonClick.wav");
+        forceStartGame();
     };
 
     // Send request to server to join to a game
@@ -69,7 +74,6 @@ Joining::Joining()
 
 Joining::~Joining()
 {
-    g_pUIContext->clearState();
     pUIScreen->release();
     pUserCardTemplate->release();
     Globals::pRTS->release();
@@ -93,11 +97,14 @@ void Joining::natPunchThrough()
                 {
                     Globals::myUser.ipPort = pMySocket->getIPPort();
                     Globals::pRTS->addMe(pMySocket, Globals::myUser.id);
-                    pMySocket->release();
 
                     // Send my ip port to the server so other players can sync up
                     sendIPPort();
                 }
+            }
+            else if (pMySocket)
+            {
+                pMySocket->release();
             }
             release();
         });
@@ -125,6 +132,7 @@ void Joining::update()
             requestUpdate();
         }
     }
+    Globals::pRTS->update();
 }
 
 void Joining::render()
@@ -149,6 +157,8 @@ void Joining::updateGameContent(const std::string& json)
         return;
     }
 
+    updateRTSPeers();
+
     // Refresh rows
     auto pTopRow = pUIScreen->getChild("topRow");
     auto pBottomRow = pUIScreen->getChild("bottomRow");
@@ -163,6 +173,53 @@ void Joining::updateGameContent(const std::string& json)
         else
         {
             addToRow(pBottomRow, buildCardFromUser(user));
+        }
+    }
+
+    // Start the game if status has changed
+    if (Globals::myGame.status == "IN_PROGRESS")
+    {
+        changeView<Game>();
+    }
+}
+
+void Joining::updateRTSPeers()
+{
+    // Remove gone peers
+    auto peers = Globals::pRTS->getPeers();
+    for (auto pPeer : peers)
+    {
+        bool bIsFound = false;
+        for (auto &user : Globals::myGame.users)
+        {
+            if (pPeer->getPlayerId() == user.id)
+            {
+                bIsFound = true;
+                break;
+            }
+        }
+        if (!bIsFound)
+        {
+            Globals::pRTS->removePeer(pPeer);
+        }
+    }
+
+    // Add new peers
+    peers = Globals::pRTS->getPeers();
+    for (auto &user : Globals::myGame.users)
+    {
+        if (user.id == Globals::myUser.id) continue;
+        bool bIsFound = false;
+        for (auto pPeer : peers)
+        {
+            if (pPeer->getPlayerId() == user.id)
+            {
+                bIsFound = true;
+            }
+        }
+        if (!bIsFound)
+        {
+            Globals::pRTS->addPeer(new onut::RTSPeer(user.ipPort, user.id));
         }
     }
 }
@@ -181,10 +238,8 @@ void Joining::showError(const std::string &json)
     pUIScreen->getChild<onut::UILabel>("lblError")->textComponent.text = errorMsg;
     pUIScreen->getChild("btnOK")->onClick = [this](onut::UIControl*, const onut::UIMouseEvent&)
     {
-        g_pCurrentView->release();
-        g_pCurrentView = new Main();
-        g_pCurrentView->retain();
-        g_pCurrentView->enter();
+        OPlaySound("buttonClick.wav");
+        changeView<Main>();
     };
 }
 
@@ -245,6 +300,20 @@ onut::UIControl *Joining::buildCardFromUser(const Globals::SUser &user)
 {
     auto pCard = pUserCardTemplate->copy();
     pCard->getChild<onut::UILabel>("lblUsername")->textComponent.text = user.username;
-    pCard->getChild<onut::UILabel>("lblLevel")->textComponent.text = user.ipPort;// "Level " + std::to_string(user.level);
+    pCard->getChild<onut::UILabel>("lblLevel")->textComponent.text ="Level " + std::to_string(user.level);
     return pCard;
+}
+
+void Joining::forceStartGame()
+{
+    pUIScreen->getChild("btnForceStart")->isVisible = false;
+    pUIScreen->getChild("forceStartSpinner")->isVisible = true;
+
+    // We signal the master server so players are made aware
+    OHTTPPostAsync("http://www.daivuk.com/onutDOTA/startgame.php",
+    {
+        {"userId", std::to_string(Globals::myUser.id)},
+        {"token", Globals::myUser.token},
+        {"gameId", std::to_string(Globals::myGame.id)}
+    });
 }

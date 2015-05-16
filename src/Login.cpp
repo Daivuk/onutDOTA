@@ -30,10 +30,7 @@ Login::Login()
     pUIScreen->getChild("btnSignUp")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        g_pCurrentView->release();
-        g_pCurrentView = new SignUp();
-        g_pCurrentView->retain();
-        g_pCurrentView->enter();
+        changeView<SignUp>();
     };
     pUIScreen->getChild("btnSignIn")->onClick = [this](onut::UIControl*, const onut::UIMouseEvent&)
     {
@@ -88,10 +85,7 @@ Login::Login()
                         Globals::SUser user;
                         Globals::userFromJson(user, doc["data"]["user"]);
                         Globals::setMyUser(user);
-                        g_pCurrentView->release();
-                        g_pCurrentView = new Main();
-                        g_pCurrentView->retain();
-                        g_pCurrentView->enter();
+                        changeView<Main>();
                     }
                 });
             }
@@ -105,7 +99,6 @@ Login::Login()
 
 Login::~Login()
 {
-    g_pUIContext->clearState();
     pUIScreen->release();
 }
 

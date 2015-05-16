@@ -5,7 +5,6 @@
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
-extern View *g_pCurrentView;
 
 Main::Main()
 {
@@ -17,10 +16,7 @@ Main::Main()
     pUIScreen->getChild("btnPlay")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        g_pCurrentView->release();
-        g_pCurrentView = new Joining();
-        g_pCurrentView->retain();
-        g_pCurrentView->enter();
+        changeView<Joining>();
     };
     pUIScreen->getChild("btnQuit")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
@@ -30,16 +26,12 @@ Main::Main()
     pUIScreen->getChild("btnCredits")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        g_pCurrentView->release();
-        g_pCurrentView = new Credits();
-        g_pCurrentView->retain();
-        g_pCurrentView->enter();
+        changeView<Credits>();
     };
 }
 
 Main::~Main()
 {
-    g_pUIContext->clearState();
     pUIScreen->release();
 }
 

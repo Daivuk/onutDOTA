@@ -49,10 +49,7 @@ SignUp::SignUp()
     pUIScreen->getChild("btnCancel")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        g_pCurrentView->release();
-        g_pCurrentView = new Login();
-        g_pCurrentView->retain();
-        g_pCurrentView->enter();
+        changeView<Login>();
     };
     pUIScreen->getChild("btnSignUp")->onClick = [this](onut::UIControl*, const onut::UIMouseEvent&)
     {
@@ -114,9 +111,7 @@ SignUp::SignUp()
                             Globals::SUser user;
                             Globals::userFromJson(user, doc["data"]["user"]);
                             Globals::setMyUser(user);
-                            delete g_pCurrentView;
-                            g_pCurrentView = new Main();
-                            g_pCurrentView->enter();
+                            changeView<Main>();
                         }
                     }
                     release();
@@ -130,7 +125,6 @@ SignUp::SignUp()
 
 SignUp::~SignUp()
 {
-    g_pUIContext->clearState();
     pUIScreen->release();
 }
 

@@ -67,12 +67,20 @@ bool Globals::gameFromJson(SGame &game, const rapidjson::Value &jsonData)
         return false;
     }
     game.id = jsonGameId.GetInt64();
+
     const auto &jsonGameSeed = jsonGame["seed"];
     if (!jsonGameSeed.IsUint())
     {
         return false;
     }
     game.seed = jsonGameSeed.GetUint();
+
+    const auto &jsonGameStatus = jsonGame["status"];
+    if (!jsonGameStatus.IsString())
+    {
+        return false;
+    }
+    game.status = jsonGameStatus.GetString();
 
     // Parse users
     for (decltype(jsonUsers.Size()) i = 0; i < jsonUsers.Size(); ++i)

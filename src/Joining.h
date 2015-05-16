@@ -23,6 +23,8 @@ public:
     void showError(const std::string &json);
     void natPunchThrough();
     void sendIPPort();
+    void updateRTSPeers();
+    void forceStartGame();
 
     void addToRow(onut::UIControl *pRow, onut::UIControl *pControl);
     onut::UIControl *buildCardFromUser(const Globals::SUser &user);

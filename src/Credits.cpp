@@ -16,16 +16,12 @@ Credits::Credits()
     pUIScreen->getChild("btnBack")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
-        g_pCurrentView->release();
-        g_pCurrentView = new Main();
-        g_pCurrentView->retain();
-        g_pCurrentView->enter();
+        changeView<Main>();
     };
 }
 
 Credits::~Credits()
 {
-    g_pUIContext->clearState();
     pUIScreen->release();
 }
 

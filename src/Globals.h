@@ -26,6 +26,7 @@ public:
         int64_t id;
         uint32_t seed;
         std::vector<SUser> users;
+        std::string status;
     } myGame;
 
     static void setMyUser(const SUser &user);
