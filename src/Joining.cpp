@@ -69,6 +69,7 @@ Joining::Joining()
     Globals::pRTS->retain();
 
     // Nat punch through
+    ips = onut::getLocalIPS();
     natPunchThrough();
 }
 
@@ -95,7 +96,12 @@ void Joining::natPunchThrough()
                 }
                 else
                 {
-                    Globals::myUser.ipPort = pMySocket->getIPPort();
+                    std::string allIPs;
+                    for (auto & ip: ips)
+                    {
+                        allIPs += ip + ":";
+                    }
+                    Globals::myUser.ipPort = allIPs + pMySocket->getIPPort();
                     Globals::pRTS->addMe(pMySocket, Globals::myUser.id);
 
                     // Send my ip port to the server so other players can sync up
@@ -219,7 +225,10 @@ void Joining::updateRTSPeers()
         }
         if (!bIsFound)
         {
-            Globals::pRTS->addPeer(new onut::RTSPeer(user.ipPort, user.id));
+            if (Globals::pRTS->getSocket())
+            {
+                Globals::pRTS->addPeer(new onut::RTSPeer(Globals::pRTS->getSocket(), user.ipPort, user.id));
+            }
         }
     }
 }

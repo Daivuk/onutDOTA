@@ -35,4 +35,5 @@ public:
     Globals::SUser bottomUsers;
     std::chrono::steady_clock::time_point lastUpdateRequestTime;
     bool lastRequestCompleted = true;
+    std::vector<std::string> ips;
 };
