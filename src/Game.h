@@ -1,6 +1,17 @@
 #pragma once
 #include "View.h"
 
+class ChatFader : public onut::Object
+{
+public:
+    ChatFader(onut::UILabel *pLabel);
+    void update();
+
+private:
+    OAnimf m_alphaAnim;
+    onut::UILabel *m_pLabel;
+};
+
 class Game : public View
 {
 public:
@@ -13,6 +24,7 @@ public:
 
     void onChatMessage(const std::string &msg);
     void showChat();
+    void updateChats();
 
     onut::UITextBox *pChat;
     onut::UIControl *pChatContainer;

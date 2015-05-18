@@ -191,6 +191,7 @@ int CALLBACK WinMain(
             {
                 oColor = {.4f, .4f, .4f, 1};
             }
+            oColor.Premultiply();
 
             if (pFont)
             {

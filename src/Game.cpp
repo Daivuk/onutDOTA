@@ -61,6 +61,8 @@ void Game::update()
     {
     }
 
+    updateChats();
+
     // Show current turn in debug
 #if _DEBUG
     pUIScreen->getChild<onut::UILabel>("lblTurn")->textComponent.text = "Turn: " + std::to_string(Globals::pRTS->getTurn());
@@ -83,6 +85,36 @@ void Game::showChat()
     g_pUIContext->focus(pChat);
 }
 
+void Game::updateChats()
+{
+    for (auto pChatMsg : pChatContainer->getChildren())
+    {
+        auto pCharFader = (ChatFader*)pChatMsg->pUserData;
+        pCharFader->update();
+    }
+}
+
+ChatFader::ChatFader(onut::UILabel *pLabel)
+    : m_pLabel(pLabel)
+{
+    pLabel->pUserData = this;
+    m_alphaAnim.start(1.f,
+    {
+        {1.f, 5.f},
+        {0.f, 2.f, onut::TweenType::LINEAR},
+        {0.f, 0.f, onut::TweenType::LINEAR, [this]
+        {
+            m_pLabel->release();
+            release();
+        }}
+    });
+}
+
+void ChatFader::update()
+{
+    m_pLabel->textComponent.font.color.a = m_alphaAnim.get();
+}
+
 void Game::onChatMessage(const std::string &msg)
 {
     auto pNewChatMsg = dynamic_cast<onut::UILabel*>(pChatMsgTemplate->copy());
@@ -91,5 +123,6 @@ void Game::onChatMessage(const std::string &msg)
         pChatMsg->rect.position.y -= pNewChatMsg->rect.size.y;
     }
     pNewChatMsg->textComponent.text = msg;
+    new ChatFader(pNewChatMsg);
     pChatContainer->add(pNewChatMsg);
 }
