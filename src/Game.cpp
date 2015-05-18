@@ -48,6 +48,11 @@ Game::Game()
 Game::~Game()
 {
     pChatMsgTemplate->release();
+    for (auto pChatMsg : pChatContainer->getChildren())
+    {
+        auto pCharFader = (ChatFader*)pChatMsg->pUserData;
+        pCharFader->release();
+    }
     pChatContainer->release();
     pChat->release();
     pUIScreen->release();
