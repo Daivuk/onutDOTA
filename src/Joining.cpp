@@ -24,12 +24,12 @@ Joining::Joining()
         changeView<Main>();
     };
 
-    pUIScreen->getChild("btnForceStart")->isVisible = true;
     pUIScreen->getChild("btnForceStart")->onClick = [this](onut::UIControl*, const onut::UIMouseEvent&)
     {
         OPlaySound("buttonClick.wav");
         forceStartGame();
     };
+    pUIScreen->getChild("btnForceStart")->isVisible = false;
 
     // Send request to server to join to a game
     retain();
@@ -189,6 +189,19 @@ void Joining::updateGameContent(const std::string& json)
     if (Globals::myGame.status == "IN_PROGRESS")
     {
         changeView<Game>();
+    }
+
+    if (!Globals::myUser.ipPort.empty())
+    {
+        pUIScreen->getChild("btnForceStart")->isVisible = true;
+        for (auto pPeer : Globals::pRTS->getPeers())
+        {
+            if (!pPeer->isConnected())
+            {
+                pUIScreen->getChild("btnForceStart")->isVisible = false;
+                break;
+            }
+        }
     }
 }
 
