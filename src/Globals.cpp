@@ -105,3 +105,15 @@ void Globals::setMyUser(const SUser &user)
     pUIHeader->getChild<onut::UILabel>("lblXP")->textComponent.text = "XP: " + std::to_string(myUser.xp);
     pUIHeader->getChild<onut::UILabel>("lblGold")->textComponent.text = "Gold: 0";
 }
+
+const Globals::SUser *Globals::getUserById(const SGame &game, uint64_t userId)
+{
+    for (auto &user : game.users)
+    {
+        if (user.id == userId)
+        {
+            return &user;
+        }
+    }
+    return nullptr;
+}

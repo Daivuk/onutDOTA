@@ -70,6 +70,9 @@ Joining::Joining()
 
     // Nat punch through
     ips = onut::getLocalIPS();
+#if _DEBUG
+    ips.push_back("127.0.0.1"); // To run multiple instances on the same machine
+#endif
     natPunchThrough();
 }
 

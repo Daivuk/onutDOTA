@@ -82,6 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\commands.cpp" />
     <ClCompile Include="..\..\src\Credits.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Globals.cpp" />
@@ -93,6 +94,7 @@
     <ClCompile Include="..\..\src\View.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\commands.h" />
     <ClInclude Include="..\..\src\Credits.h" />
     <ClInclude Include="..\..\src\Game.h" />
     <ClInclude Include="..\..\src\Globals.h" />

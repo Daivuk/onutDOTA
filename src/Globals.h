@@ -29,6 +29,8 @@ public:
         std::string status;
     } myGame;
 
+    static const SUser *getUserById(const SGame &game, uint64_t userId);
+
     static void setMyUser(const SUser &user);
 
     static bool userFromJson(SUser &user, const rapidjson::Value &json);

@@ -9,6 +9,18 @@
 onut::UIContext *g_pUIContext = nullptr;
 View *g_pCurrentView = nullptr;
 
+static const Color g_selectedTextColor = OColorHex(ffffff);
+static const Color g_cursorColor = OColorHex(dadad9);
+static const Color g_cursorSelectionColor = OColorHex(cc6600);
+static const Color g_treeItemSelectedBGColor = OColorHex(3399ff);
+
+// Kind of a hack because the UI system doesn't have a proper way yet to draw textboxes
+namespace onut
+{
+    void renderScale9Component(const onut::UIContext& context, onut::UIControl* pControl, const onut::sUIRect& rect, const onut::sUIScale9Component& scale9Component);
+    void renderTextComponent(const onut::UIContext& context, onut::UIControl* pControl, const onut::sUIRect& rect, const onut::sUITextComponent& textComponent);
+}
+
 void hookButtonSounds(onut::UIControl *pCtrl)
 {
     if (dynamic_cast<onut::UIButton *>(pCtrl))
@@ -184,8 +196,12 @@ int CALLBACK WinMain(
             {
                 if (pControl->getStyleName() == "password")
                 {
-                    static std::string pwd;
+                    std::string pwd;
                     pwd.resize(text.text.size(), '*');
+                    if (pControl->hasFocus(*g_pUIContext) && ((onut::UITextBox*)pControl)->isCursorVisible())
+                    {
+                        pwd.back() = '_';
+                    }
                     pFont->draw<>(pwd, ORectAlign<>(oRect, align), oColor, OSB, align);
                 }
                 else
@@ -202,6 +218,10 @@ int CALLBACK WinMain(
         OWindow->onWrite = [](char c)
         {
             g_pUIContext->write(c);
+            if (c == '\r' && dynamic_cast<Game*>(g_pCurrentView))
+            {
+                dynamic_cast<Game*>(g_pCurrentView)->showChat();
+            }
         };
         OWindow->onKey = [](uintptr_t key)
         {
@@ -211,8 +231,8 @@ int CALLBACK WinMain(
         []
     {
         g_pUIContext->resize({OScreenWf, OScreenHf});
-        g_pCurrentView->pUIScreen->update(*g_pUIContext, {OMousePos.x, OMousePos.y}, OInput->isStateDown(DIK_MOUSEB1));
         g_pCurrentView->update();
+        g_pCurrentView->pUIScreen->update(*g_pUIContext, {OMousePos.x, OMousePos.y}, OInput->isStateDown(DIK_MOUSEB1));
     },
         []
     {
