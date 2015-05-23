@@ -30,12 +30,4 @@ public:
     onut::UITextBox *pChat;
     onut::UIControl *pChatContainer;
     onut::UILabel *pChatMsgTemplate;
-
-    struct sAvatar
-    {
-        Vector2 pos;
-        Vector2 targetPos;
-    };
-
-    std::unordered_map<uint64_t, sAvatar> avatarsByPlayerIds;
 };

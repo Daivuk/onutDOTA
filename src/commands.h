@@ -11,10 +11,4 @@ struct sCMD_CHAT_MSG
     char text[80];
 };
 
-#define CMD_MOVE_AVATAR 2
-struct sCMD_MOVE_AVATAR
-{
-    float x, y;
-};
-
 #pragma pack (pop)

@@ -35,19 +35,4 @@ void hookCommands()
             }
         }
     });
-
-    Globals::pRTS->registerCommand(CMD_MOVE_AVATAR, sizeof(sCMD_MOVE_AVATAR),
-                                   [](void *pData, onut::RTSPeer *pPeer)
-    {
-        auto pUser = getUserFromPeer(pPeer);
-        if (!pUser) return;
-        auto pMsg = (sCMD_MOVE_AVATAR*)pData;
-
-        auto pGame = dynamic_cast<Game*>(g_pCurrentView);
-        
-        if (pGame)
-        {
-            pGame->avatarsByPlayerIds[pUser->id].targetPos = {pMsg->x, pMsg->y};
-        }
-    });
 }

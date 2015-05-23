@@ -7,6 +7,10 @@ void hookButtonSounds(onut::UIControl *pScreen);
 
 Game::Game()
 {
+    // Randomize
+    srand(Globals::myGame.seed);
+
+    Globals::pMap = new Map(0);
     pUIScreen = new onut::UIControl("../../assets/ui/game.json");
     pUIScreen->retain();
     pChat = pUIScreen->getChild<onut::UITextBox>("txtChat");
@@ -57,6 +61,7 @@ Game::~Game()
     pChat->release();
     pUIScreen->release();
     Globals::pRTS->release();
+    Globals::pMap->release();
 }
 
 void Game::update()
@@ -64,17 +69,7 @@ void Game::update()
     auto updateFrames = Globals::pRTS->update();
     while (updateFrames--)
     {
-        // Update avatars
-        for (auto &user : Globals::myGame.users)
-        {
-            auto &avatar = avatarsByPlayerIds[user.id];
-            auto dist = Vector2::Distance(avatar.pos, avatar.targetPos);
-            dist -= ODT * 400.f;
-            if (dist < 0) dist = 0;
-            auto dir = avatar.pos - avatar.targetPos;
-            dir.Normalize();
-            avatar.pos = avatar.targetPos + dir * dist;
-        }
+        Globals::pMap->update();
     }
 
     updateChats();
@@ -83,27 +78,11 @@ void Game::update()
 #if _DEBUG
     pUIScreen->getChild<onut::UILabel>("lblTurn")->textComponent.text = "Turn: " + std::to_string(Globals::pRTS->getTurn());
 #endif
-
-    // User inputs
-    if (OInput->isStateJustDown(DIK_MOUSEB2))
-    {
-        sCMD_MOVE_AVATAR cmd;
-        cmd.x = OMousePos.x;
-        cmd.y = OMousePos.y;
-        Globals::pRTS->sendCommand(CMD_MOVE_AVATAR, &cmd);
-    }
 }
 
 void Game::render()
 {
-    // Draw avatars
-    OSB->begin();
-    for (auto &user : Globals::myGame.users)
-    {
-        auto &avatar = avatarsByPlayerIds[user.id];
-        OSB->drawSprite(OGetTexture("avatar.png"), avatar.pos);
-    }
-    OSB->end();
+    Globals::pMap->render();
 }
 
 void Game::enter()

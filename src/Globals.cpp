@@ -7,6 +7,7 @@ Globals::SUser Globals::myUser;
 Globals::SGame Globals::myGame;
 onut::UIControl *Globals::pUIHeader = nullptr;
 onut::RTS *Globals::pRTS = nullptr;
+Map *Globals::pMap = nullptr;
 
 void Globals::init()
 {

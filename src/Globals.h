@@ -3,6 +3,7 @@
 #include <cinttypes>
 #include "rapidjson/document.h"
 #include "onut.h"
+#include "map.h"
 
 class Globals
 {
@@ -38,4 +39,5 @@ public:
 
     static onut::UIControl *pUIHeader;
     static onut::RTS *pRTS;
+    static Map *pMap;
 };
