@@ -11,6 +11,7 @@ public:
 
     void render();
     void update();
+    void rts_update();
 
 private:
     onut::TiledMap m_tiledMap;

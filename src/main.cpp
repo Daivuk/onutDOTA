@@ -59,8 +59,13 @@ int CALLBACK WinMain(
     _In_  int nCmdShow
     )
 {
-    OSettings->setGameName("Oak Nut DOTA");
+    // Set defaults
+    OSettings->setUserSettingDefault("key_scroll_speed", std::to_string(32.f));
+    OSettings->setUserSettingDefault("mouse_scroll_speed", std::to_string(32.f));
+    OSettings->setUserSettingDefault("mouse_scroll_edge_size", std::to_string(32.f));
+    OSettings->setUserSettingDefault("drag_scroll_speed", std::to_string(1.f));
     OSettings->setResolution({1280, 720});
+    OSettings->setGameName("Oak Nut DOTA");
 
     onut::run([]
     {

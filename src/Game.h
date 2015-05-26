@@ -22,6 +22,7 @@ public:
     void update() override;
     void render() override;
     void enter() override;
+    void rts_update();
 
     void onChatMessage(const std::string &msg);
     void showChat();

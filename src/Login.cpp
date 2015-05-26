@@ -2,6 +2,7 @@
 #include "SignUp.h"
 #include "Globals.h"
 #include "Main.h"
+#include "Game.h"
 
 extern onut::UIContext *g_pUIContext;
 extern View *g_pCurrentView;
@@ -90,6 +91,33 @@ Login::Login()
                 });
             }
         }, pUIScreen->getChild<onut::UITextBox>("txtEmail")->textComponent.text, sha1);
+    };
+    pUIScreen->getChild("btnOfflinePlay")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
+    {
+        // Fake user
+        Globals::myUser.connected = true;
+        Globals::myUser.token = "";
+        Globals::myUser.id = 1;
+        Globals::myUser.username = "John Doe";
+        Globals::myUser.level = 1;
+        Globals::myUser.xp = 0;
+        Globals::myUser.team = rand() % 2;
+        Globals::myUser.ipPort = "127.0.0.1:9999";
+
+        // Fake game
+        Globals::myGame.id = 1;
+        Globals::myGame.seed = 0;
+        Globals::myGame.status = "IN_PROGRESS";
+        Globals::myGame.users = {Globals::myUser};
+
+        // RTS
+        Globals::pRTS = new onut::RTS();
+        Globals::pRTS->retain();
+        Globals::pRTS->addMe(nullptr, Globals::myUser.id);
+
+        changeView<Game>();
+
+        Globals::pRTS->release();
     };
 
     pUIScreen->getChild<onut::UITextBox>("txtEmail")->textComponent.text = OSettings->getUserSetting("email");

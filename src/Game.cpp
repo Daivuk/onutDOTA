@@ -66,10 +66,12 @@ Game::~Game()
 
 void Game::update()
 {
+    Globals::pMap->update();
+
     auto updateFrames = Globals::pRTS->update();
     while (updateFrames--)
     {
-        Globals::pMap->update();
+        rts_update();
     }
 
     updateChats();
@@ -78,6 +80,11 @@ void Game::update()
 #if _DEBUG
     pUIScreen->getChild<onut::UILabel>("lblTurn")->textComponent.text = "Turn: " + std::to_string(Globals::pRTS->getTurn());
 #endif
+}
+
+void Game::rts_update()
+{
+    Globals::pMap->rts_update();
 }
 
 void Game::render()
