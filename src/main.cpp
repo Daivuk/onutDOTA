@@ -246,6 +246,10 @@ int CALLBACK WinMain(
         g_pCurrentView->render();
         OSB->begin();
         g_pCurrentView->pUIScreen->render(*g_pUIContext);
+
+        // Show fps
+        static auto pFont = OGetBMFont("segeo12.fnt");
+        pFont->draw<OTopRight>("FPS: " + std::to_string(onut::getTimeInfo().getFPS()), {OScreenWf, 0}, {0, 1, 0, 1});
         OSB->end();
     });
 }
