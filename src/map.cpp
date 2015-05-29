@@ -1,21 +1,51 @@
 #include "Globals.h"
 #include "map.h"
+#include "Unit.h"
+#include "eg.h"
 
 Map::Map(int seed)
     : m_tiledMap("../../assets/maps/daivuk.tmx")
     , m_cameraPos(64, 64)
 {
+    pCollisions = new uint8_t[m_tiledMap.getWidth() * m_tiledMap.getHeight()];
+
+    // Read and spawn entities already on the map
+    for (auto i = 0; i < m_tiledMap.getLayerCount(); ++i)
+    {
+        auto pObjectLayer = dynamic_cast<onut::TiledMap::sObjectLayer*>(m_tiledMap.getLayer(i));
+        if (!pObjectLayer) continue;
+        for (uint32_t j = 0; j < pObjectLayer->objectCount; ++j)
+        {
+            auto pObject = pObjectLayer->pObjects[j];
+            int team;
+            pObject.position /= 40.f;
+            pObject.size /= 40.f;
+            try
+            {
+                team = std::stoi(pObject.properties["team"]);
+            }
+            catch (std::exception e) 
+            {
+                continue;
+            }
+            if (pObject.type == "Spawner")
+            {
+                auto pUnit = spawn(pObject.position, eUnitType::SPAWNER, team);
+            }
+        }
+    }
 }
 
 Map::~Map()
 {
+    delete[] pCollisions;
 }
 
 void Map::render()
 {
     // Define our camera transform matrix
-    auto camX = round(m_cameraPos.x * 40 - OScreenWf * .5f);
-    auto camY = round(m_cameraPos.y * 40 - OScreenHf * .5f);
+    auto camX = round(m_cameraPos.x * 40.f - OScreenWf * .5f);
+    auto camY = round(m_cameraPos.y * 40.f - OScreenHf * .5f);
     Matrix transform = Matrix::CreateTranslation(-camX, -camY, 0);
     m_tiledMap.setTransform(transform);
 
@@ -28,6 +58,21 @@ void Map::render()
 
     // Draw the visible part of the map
     m_tiledMap.render(rect);
+
+    // Draw units
+    transform = Matrix::CreateScale(40.f, 40.f, 1.f) * transform;
+    egModelPush();
+    egModelIdentity();
+    egModelMult(&transform._11);
+
+    OSB->begin();
+    for (auto pUnit = pUnitStart; pUnit; pUnit = pUnit->pNext)
+    {
+        pUnit->render();
+    }
+    OSB->end();
+
+    egModelPop();
 }
 
 void Map::update()
@@ -73,4 +118,55 @@ void Map::update()
 
 void Map::rts_update()
 {
+    // Update units
+    for (auto pUnit = pUnitStart; pUnit; pUnit = pUnit->pNext)
+    {
+        pUnit->rts_update();
+    }
+}
+
+Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
+{
+    // Alloc a new unit
+    auto pUnit = m_unitPool.alloc<Unit>();
+    if (!pUnit) return nullptr;
+
+    pUnit->position = position;
+    pUnit->type = unitType;
+    pUnit->team = team;
+
+    switch (unitType)
+    {
+        case eUnitType::SPAWNER:
+            pUnit->sizeType = eUnitSizeType::BOX;
+            pUnit->boxSize = {3, 3};
+            pUnit->pTexture = OGetTexture("buildings/buildings.png");
+            pUnit->UVs = {
+                240.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
+                440.f / pUnit->pTexture->getSizef().x, 200.f / pUnit->pTexture->getSizef().y};
+            pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 200.f / 40.f, 200.f / 40.f};
+            break;
+    }
+
+    if (pUnit->sizeType == eUnitSizeType::BOX)
+    {
+        int pos[2] = {(int)round(pUnit->position.x), (int)round(pUnit->position.y)};
+        for (auto y = pos[1]; y < pUnit->boxSize.y; ++y)
+        {
+            for (auto x = pos[0]; x < pUnit->boxSize.x; ++x)
+            {
+                pCollisions[y * m_tiledMap.getWidth() + x] = 0x02;
+            }
+        }
+    }
+
+    if (!pUnitStart) pUnitStart = pUnit;
+    else
+    {
+        pUnitStart->pPrevious = pUnit;
+        pUnit->pNext = pUnitStart;
+        pUnitStart = pUnit;
+    }
+
+    return pUnit;
 }
