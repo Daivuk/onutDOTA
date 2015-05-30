@@ -1,6 +1,6 @@
 #pragma once
 #include "TiledMap.h"
-#include "Waypoint.h"
+#include "Unit.h"
 
 #define MAX_UNITS 2048
 
@@ -34,7 +34,7 @@ public:
 public:
     onut::TiledMap m_tiledMap;
     Vector2 m_cameraPos;
-    onut::Pool<sizeof(Waypoint), MAX_UNITS, 4U, false> m_unitPool;
+    OPool *pUnitPool = nullptr;
     std::list<Unit *> m_units;
     uint8_t *pCollisions = nullptr;
 };

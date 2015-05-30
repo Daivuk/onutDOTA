@@ -75,6 +75,13 @@ struct sAnimRes
     const sAnimDef *pAnimDef;
 };
 
+struct sAnim
+{
+    sAnimRes *pAnimRes;
+    int frame = 0;
+    float progress = 0.f;
+};
+
 class Globals
 {
 public:

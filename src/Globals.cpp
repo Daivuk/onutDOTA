@@ -36,9 +36,13 @@ void Globals::init()
                 frame.UVs.y = ((float)(frameId / 8) * 24.f) / 256.f;
                 frame.UVs.z = ((float)(frameId % 8 + 1)) / 8.f;
                 frame.UVs.w = ((float)(frameId / 8 + 1) * 24.f) / 256.f;
+                if (animRes.pAnimDef->hFlip)
+                {
+                    std::swap(frame.UVs.x, frame.UVs.z);
+                }
                 if (team)
                 {
-                    frame.UVs.z += .5f;
+                    frame.UVs.y += .5f;
                     frame.UVs.w += .5f;
                 }
                 animRes.frames.push_back(frame);

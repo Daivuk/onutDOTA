@@ -101,6 +101,8 @@ void Game::spawnMinions()
     std::vector<Spawner*> spawners = Globals::pMap->getUnits<Spawner>();
     for (auto pSpawner : spawners)
     {
+        auto pMinion = dynamic_cast<Minion*>(Globals::pMap->spawn(pSpawner->getCenter(), eUnitType::MINION, pSpawner->team));
+        pMinion->walkTo(pSpawner->pFirstWaypoint);
     }
 }
 

@@ -1,16 +1,25 @@
 #include "Globals.h"
 #include "map.h"
-#include "Unit.h"
 #include "eg.h"
 
 #include "Spawner.h"
 #include "Nexus.h"
 #include "Waypoint.h"
+#include "Minion.h"
 
 Map::Map(int seed)
     : m_tiledMap("../../assets/maps/daivuk.tmx")
     , m_cameraPos(64, 64)
 {
+    decltype(sizeof(Unit)) biggest = 0;
+    biggest = std::max<>(biggest, sizeof(Spawner));
+    biggest = std::max<>(biggest, sizeof(Nexus));
+    biggest = std::max<>(biggest, sizeof(Waypoint));
+    biggest = std::max<>(biggest, sizeof(Waypoint));
+    biggest = std::max<>(biggest, sizeof(Minion));
+    
+    pUnitPool = new OPool(biggest, MAX_UNITS);
+
     pCollisions = new uint8_t[m_tiledMap.getWidth() * m_tiledMap.getHeight()];
 
     // Read and spawn entities already on the map
@@ -141,6 +150,7 @@ Map::Map(int seed)
 
 Map::~Map()
 {
+    if (pUnitPool) delete pUnitPool;
     delete[] pCollisions;
 }
 
@@ -212,18 +222,14 @@ void Map::render()
 #endif
 
     OSB->begin();
+    egStatePush();
+    egFilter(EG_FILTER_NEAREST);
     for (auto pUnit : m_units)
     {
         pUnit->render();
     }
-
-    auto &animRes = Globals::baltAnimsResources[BALT_DOWN | BALT_IDLE][0];
-
-    egStatePush();
-    egFilter(EG_FILTER_NEAREST);
-    OSB->drawRectWithUVs(OGetTexture("minions/beggarPlateArmor.png"), {64.f + animRes.frames[0].offset.x, 64.f + animRes.frames[0].offset.y, animRes.frames[0].size.x, animRes.frames[0].size.y}, animRes.frames[0].UVs);
-    OSB->end();
     egStatePop();
+    OSB->end();
 
     egModelPop();
 }
@@ -286,7 +292,7 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
     {
         case eUnitType::SPAWNER:
         {
-            pUnit = m_unitPool.alloc<Spawner>();
+            pUnit = pUnitPool->alloc<Spawner>();
             if (!pUnit) return nullptr;
             pUnit->sizeType = eUnitSizeType::BOX;
             pUnit->boxSize = {3, 3};
@@ -299,7 +305,7 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
         }
         case eUnitType::NEXUS:
         {
-            pUnit = m_unitPool.alloc<Nexus>();
+            pUnit = pUnitPool->alloc<Nexus>();
             if (!pUnit) return nullptr;
             pUnit->sizeType = eUnitSizeType::BOX;
             pUnit->boxSize = {4, 4};
@@ -312,9 +318,23 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
         }
         case eUnitType::WAYPOINT:
         {
-            pUnit = m_unitPool.alloc<Waypoint>();
+            pUnit = pUnitPool->alloc<Waypoint>();
             if (!pUnit) return nullptr;
-            pUnit->sizeType = eUnitSizeType::NONE;
+            pUnit->sizeType = eUnitSizeType::BOX;
+            break;
+        }
+        case eUnitType::MINION:
+        {
+            pUnit = pUnitPool->alloc<Minion>();
+            if (!pUnit) return nullptr;
+            pUnit->sizeType = eUnitSizeType::RADIUS;
+            pUnit->radius = .25f;
+            pUnit->pTexture = OGetTexture("minions/beggarPlateArmor.png");
+            auto pMinion = dynamic_cast<Minion*>(pUnit);
+            pMinion->anim.pAnimRes = &Globals::baltAnimsResources[BALT_DOWN | BALT_IDLE][team];
+            auto &animRes = *pMinion->anim.pAnimRes;
+            pUnit->UVs = animRes.frames[0].UVs;
+            pUnit->spriteOffsetAndSize = {animRes.frames[0].offset.x, animRes.frames[0].offset.y, animRes.frames[0].size.x, animRes.frames[0].size.y};
             break;
         }
         default:

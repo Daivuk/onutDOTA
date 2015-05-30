@@ -66,7 +66,7 @@ int CALLBACK WinMain(
     OSettings->setUserSettingDefault("drag_scroll_speed", std::to_string(1.f));
     OSettings->setResolution({1280, 720});
     OSettings->setGameName("Oak Nut DOTA");
-    OSettings->setIsFixedStep(false);
+    //OSettings->setIsFixedStep(false);
 
     onut::run([]
     {

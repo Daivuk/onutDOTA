@@ -13,3 +13,12 @@ void Unit::rts_update()
 {
     if (type == eUnitType::NONE) return;
 }
+
+Vector2 Unit::getCenter() const
+{
+    if (sizeType == eUnitSizeType::BOX)
+    {
+        return position + Vector2((float)boxSize.x * .5f, (float)boxSize.y * .5f);
+    }
+    return position;
+}

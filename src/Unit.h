@@ -11,7 +11,8 @@ enum class eUnitType : uint8_t
     NONE,
     SPAWNER,
     NEXUS,
-    WAYPOINT
+    WAYPOINT,
+    MINION
 };
 
 enum class eUnitSizeType : uint8_t
@@ -26,6 +27,7 @@ class Unit
 public:
     virtual void render();
     virtual void rts_update();
+    Vector2 getCenter() const;
 
     eUnitType type = eUnitType::NONE;
     eUnitSizeType sizeType = eUnitSizeType::RADIUS;
