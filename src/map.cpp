@@ -216,7 +216,14 @@ void Map::render()
     {
         pUnit->render();
     }
+
+    auto &animRes = Globals::baltAnimsResources[BALT_DOWN | BALT_IDLE][0];
+
+    egStatePush();
+    egFilter(EG_FILTER_NEAREST);
+    OSB->drawRectWithUVs(OGetTexture("minions/beggarPlateArmor.png"), {64.f + animRes.frames[0].offset.x, 64.f + animRes.frames[0].offset.y, animRes.frames[0].size.x, animRes.frames[0].size.y}, animRes.frames[0].UVs);
     OSB->end();
+    egStatePop();
 
     egModelPop();
 }

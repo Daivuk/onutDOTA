@@ -2,6 +2,8 @@
 #include "View.h"
 #include <unordered_map>
 
+#define WAVE_INTERVAL 3600
+
 class ChatFader : public onut::Object
 {
 public:
@@ -27,8 +29,10 @@ public:
     void onChatMessage(const std::string &msg);
     void showChat();
     void updateChats();
+    void spawnMinions();
 
     onut::UITextBox *pChat;
     onut::UIControl *pChatContainer;
     onut::UILabel *pChatMsgTemplate;
+    int nextWaveIn = 0;
 };

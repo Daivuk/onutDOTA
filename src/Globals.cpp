@@ -8,6 +8,7 @@ Globals::SGame Globals::myGame;
 onut::UIControl *Globals::pUIHeader = nullptr;
 onut::RTS *Globals::pRTS = nullptr;
 Map *Globals::pMap = nullptr;
+std::unordered_map<int, std::vector<sAnimRes>> Globals::baltAnimsResources;
 
 void Globals::init()
 {
@@ -16,6 +17,35 @@ void Globals::init()
     pUIHeader->retain();
     pHeader->release();
     hookButtonSounds(pUIHeader);
+
+    // Build animations for characters
+    const float characterScale = 2.f / 40.f;
+    for (auto &kv : baltAnimsDefs)
+    {
+        for (int team = 0; team < 2; ++team)
+        {
+            sAnimRes animRes;
+            animRes.pAnimDef = &kv.second;
+            animRes.frames.reserve(kv.second.frames.size());
+            for (auto frameId : kv.second.frames)
+            {
+                sAnimFrame frame;
+                frame.offset = {-8.f * characterScale, -18.f * characterScale};
+                frame.size = {16.f * characterScale, 24.f * characterScale};
+                frame.UVs.x = ((float)(frameId % 8)) / 8.f;
+                frame.UVs.y = ((float)(frameId / 8) * 24.f) / 256.f;
+                frame.UVs.z = ((float)(frameId % 8 + 1)) / 8.f;
+                frame.UVs.w = ((float)(frameId / 8 + 1) * 24.f) / 256.f;
+                if (team)
+                {
+                    frame.UVs.z += .5f;
+                    frame.UVs.w += .5f;
+                }
+                animRes.frames.push_back(frame);
+            }
+            baltAnimsResources[kv.first].push_back(animRes);
+        }
+    }
 }
 
 bool Globals::userFromJson(SUser &user, const rapidjson::Value &json)

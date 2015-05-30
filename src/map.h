@@ -16,6 +16,20 @@ public:
 
     Unit *spawn(const Vector2 &position, eUnitType unitType, int team);
     Unit *getUnitByMapId(uint32_t mapId);
+    template<typename Tunit>
+    std::vector<Tunit*> getUnits()
+    {
+        std::vector<Tunit*> ret;
+        for (auto pUnit : m_units)
+        {
+            auto pTunit = dynamic_cast<Tunit*>(pUnit);
+            if (pTunit)
+            {
+                ret.push_back(pTunit);
+            }
+        }
+        return std::move(ret);
+    }
 
 public:
     onut::TiledMap m_tiledMap;

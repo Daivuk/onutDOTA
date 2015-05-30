@@ -1,6 +1,8 @@
 #include "Game.h"
 #include "Globals.h"
 #include "commands.h"
+#include "Minion.h"
+#include "Spawner.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -84,7 +86,22 @@ void Game::update()
 
 void Game::rts_update()
 {
+    --nextWaveIn;
+    if (nextWaveIn <= 0)
+    {
+        nextWaveIn = WAVE_INTERVAL;
+        // Spawn minions from spawners!
+        spawnMinions();
+    }
     Globals::pMap->rts_update();
+}
+
+void Game::spawnMinions()
+{
+    std::vector<Spawner*> spawners = Globals::pMap->getUnits<Spawner>();
+    for (auto pSpawner : spawners)
+    {
+    }
 }
 
 void Game::render()
