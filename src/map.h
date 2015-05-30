@@ -1,6 +1,6 @@
 #pragma once
 #include "TiledMap.h"
-#include "Unit.h"
+#include "Waypoint.h"
 
 #define MAX_UNITS 2048
 
@@ -15,11 +15,12 @@ public:
     void rts_update();
 
     Unit *spawn(const Vector2 &position, eUnitType unitType, int team);
+    Unit *getUnitByMapId(uint32_t mapId);
 
 public:
     onut::TiledMap m_tiledMap;
     Vector2 m_cameraPos;
-    onut::Pool<sizeof(Unit), MAX_UNITS, 4U, false> m_unitPool;
-    Unit *pUnitStart = nullptr;
+    onut::Pool<sizeof(Waypoint), MAX_UNITS, 4U, false> m_unitPool;
+    std::list<Unit *> m_units;
     uint8_t *pCollisions = nullptr;
 };

@@ -2,14 +2,21 @@
 
 #include "onut.h"
 
+#define TEAM_NONE -1
+#define TEAM_RED 0
+#define TEAM_BLUE 1
+
 enum class eUnitType : uint8_t
 {
     NONE,
-    SPAWNER
+    SPAWNER,
+    NEXUS,
+    WAYPOINT
 };
 
 enum class eUnitSizeType : uint8_t
 {
+    NONE,
     RADIUS,
     BOX
 };
@@ -17,11 +24,8 @@ enum class eUnitSizeType : uint8_t
 class Unit
 {
 public:
-    void render();
-    void rts_update();
-
-    Unit *pPrevious = nullptr;
-    Unit *pNext = nullptr;
+    virtual void render();
+    virtual void rts_update();
 
     eUnitType type = eUnitType::NONE;
     eUnitSizeType sizeType = eUnitSizeType::RADIUS;
@@ -31,5 +35,6 @@ public:
     Vector4 spriteOffsetAndSize;
     Vector4 UVs = {0, 0, 1, 1};
     float radius = 0.4f;
-    int team = -1;
+    int team = TEAM_NONE;
+    uint32_t mapId = 0;
 };

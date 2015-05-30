@@ -3,6 +3,10 @@
 #include "Unit.h"
 #include "eg.h"
 
+#include "Spawner.h"
+#include "Nexus.h"
+#include "Waypoint.h"
+
 Map::Map(int seed)
     : m_tiledMap("../../assets/maps/daivuk.tmx")
     , m_cameraPos(64, 64)
@@ -20,17 +24,116 @@ Map::Map(int seed)
             int team;
             pObject.position /= 40.f;
             pObject.size /= 40.f;
-            try
+            if (pObject.properties.find("team") != pObject.properties.end())
             {
-                team = std::stoi(pObject.properties["team"]);
+                try
+                {
+                    team = std::stoi(pObject.properties["team"]);
+                }
+                catch (std::exception e)
+                {
+                    continue;
+                }
             }
-            catch (std::exception e) 
-            {
-                continue;
-            }
+            Unit *pUnit = nullptr;
             if (pObject.type == "Spawner")
             {
-                auto pUnit = spawn(pObject.position, eUnitType::SPAWNER, team);
+                pUnit = spawn(pObject.position, eUnitType::SPAWNER, team);
+                if (pUnit)
+                {
+                    auto pSpawner = dynamic_cast<Spawner*>(pUnit);
+                    try
+                    {
+                        pSpawner->firstWaypoiuntId = std::stoi(pObject.properties["next"]);
+                    }
+                    catch (std::exception e) 
+                    {
+                        pSpawner->firstWaypoiuntId = 0;
+                    }
+                }
+            }
+            else if (pObject.type == "Nexus")
+            {
+                pUnit = spawn(pObject.position, eUnitType::NEXUS, team);
+            }
+            else if (pObject.type == "MinionWaypoint")
+            {
+                pUnit = spawn(pObject.position, eUnitType::WAYPOINT, -1);
+                if (pUnit)
+                {
+                    auto pWaypoint = dynamic_cast<Waypoint*>(pUnit);
+                    try
+                    {
+                        pWaypoint->nextWayPointId = std::stoi(pObject.properties["next"]);
+                    }
+                    catch (std::exception e) 
+                    {
+                        pWaypoint->nextWayPointId = 0;
+                    }
+                    pUnit->boxSize = {(LONG)pObject.size.x, (LONG)pObject.size.y};
+                }
+            }
+            if (pUnit)
+            {
+                pUnit->mapId = pObject.id;
+            }
+        }
+    }
+
+    // Link all way points
+    for (auto pUnit : m_units)
+    {
+        auto pSpawner = dynamic_cast<Spawner*>(pUnit);
+        if (!pSpawner) continue;
+        pSpawner->pFirstWaypoint = getUnitByMapId(pSpawner->firstWaypoiuntId);
+        auto team = pSpawner->team;
+        if (pSpawner->pFirstWaypoint)
+        {
+            Unit *pPrevious = pSpawner;
+            auto pWaypoint = dynamic_cast<Waypoint*>(pSpawner->pFirstWaypoint);
+            while (pWaypoint)
+            {
+                pWaypoint->pPrevious[team] = pPrevious;
+                auto pNext = getUnitByMapId(pWaypoint->nextWayPointId);
+                if (pNext == pPrevious || !pNext)
+                {
+                    for (auto pOther : m_units)
+                    {
+                        if (pOther == pWaypoint) continue;
+                        auto pOtherWaypoint = dynamic_cast<Waypoint*>(pOther);
+                        if (pOtherWaypoint)
+                        {
+                            if (pWaypoint == getUnitByMapId(pOtherWaypoint->nextWayPointId))
+                            {
+                                if (pOtherWaypoint != pWaypoint->pPrevious[team])
+                                {
+                                    pWaypoint->pNext[team] = pOtherWaypoint;
+                                    pPrevious = pWaypoint;
+                                    pWaypoint = pOtherWaypoint;
+                                    break;
+                                }
+                            }
+                        }
+                        auto pOtherSpawner = dynamic_cast<Spawner*>(pOther);
+                        if (pOtherSpawner)
+                        {
+                            if (pWaypoint == getUnitByMapId(pOtherSpawner->firstWaypoiuntId))
+                            {
+                                if (pOtherSpawner != pWaypoint->pPrevious[team])
+                                {
+                                    pWaypoint->pNext[team] = pOtherSpawner;
+                                    pPrevious = pWaypoint;
+                                    pWaypoint = nullptr;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    continue;
+                }
+                pWaypoint->pNext[team] = pNext;
+                pPrevious = pWaypoint;
+                pWaypoint = dynamic_cast<Waypoint*>(pNext);
             }
         }
     }
@@ -39,6 +142,15 @@ Map::Map(int seed)
 Map::~Map()
 {
     delete[] pCollisions;
+}
+
+Unit *Map::getUnitByMapId(uint32_t mapId)
+{
+    for (auto pUnit : m_units)
+    {
+        if (pUnit->mapId == mapId) return pUnit;
+    }
+    return nullptr;
 }
 
 void Map::render()
@@ -65,8 +177,42 @@ void Map::render()
     egModelIdentity();
     egModelMult(&transform._11);
 
+#if _DEBUG
+    for (auto pUnit : m_units)
+    {
+        auto pSpawner = dynamic_cast<Spawner*>(pUnit);
+        if (pSpawner)
+        {
+            Color color = {1.f, .5f, .5f, 1.f};
+            Vector2 offset = {-.25f, -.25f};
+            if (pSpawner->team == 1)
+            {
+                color = {.5f, .5f, 1.f, 1.f};
+                offset = {.25f, .25f};
+            }
+            OPB->begin(onut::ePrimitiveType::LINE_STRIP);
+            OPB->draw(pSpawner->position + Vector2((float)pSpawner->boxSize.x * .5f, (float)pSpawner->boxSize.y * .5f) + offset, color);
+            auto pNext = pSpawner->pFirstWaypoint;
+            while (pNext)
+            {
+                OPB->draw(pNext->position + Vector2((float)pNext->boxSize.x * .5f, (float)pNext->boxSize.y * .5f) + offset, color);
+                auto pWaypoint = dynamic_cast<Waypoint*>(pNext);
+                if (pWaypoint)
+                {
+                    pNext = pWaypoint->pNext[pSpawner->team];
+                }
+                else
+                {
+                    break;
+                }
+            }
+            OPB->end();
+        }
+    }
+#endif
+
     OSB->begin();
-    for (auto pUnit = pUnitStart; pUnit; pUnit = pUnit->pNext)
+    for (auto pUnit : m_units)
     {
         pUnit->render();
     }
@@ -119,7 +265,7 @@ void Map::update()
 void Map::rts_update()
 {
     // Update units
-    for (auto pUnit = pUnitStart; pUnit; pUnit = pUnit->pNext)
+    for (auto pUnit : m_units)
     {
         pUnit->rts_update();
     }
@@ -128,16 +274,13 @@ void Map::rts_update()
 Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
 {
     // Alloc a new unit
-    auto pUnit = m_unitPool.alloc<Unit>();
-    if (!pUnit) return nullptr;
-
-    pUnit->position = position;
-    pUnit->type = unitType;
-    pUnit->team = team;
-
+    Unit *pUnit = nullptr;
     switch (unitType)
     {
         case eUnitType::SPAWNER:
+        {
+            pUnit = m_unitPool.alloc<Spawner>();
+            if (!pUnit) return nullptr;
             pUnit->sizeType = eUnitSizeType::BOX;
             pUnit->boxSize = {3, 3};
             pUnit->pTexture = OGetTexture("buildings/buildings.png");
@@ -146,6 +289,41 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
                 440.f / pUnit->pTexture->getSizef().x, 200.f / pUnit->pTexture->getSizef().y};
             pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 200.f / 40.f, 200.f / 40.f};
             break;
+        }
+        case eUnitType::NEXUS:
+        {
+            pUnit = m_unitPool.alloc<Nexus>();
+            if (!pUnit) return nullptr;
+            pUnit->sizeType = eUnitSizeType::BOX;
+            pUnit->boxSize = {4, 4};
+            pUnit->pTexture = OGetTexture("buildings/buildings.png");
+            pUnit->UVs = {
+                0.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
+                240.f / pUnit->pTexture->getSizef().x, 240.f / pUnit->pTexture->getSizef().y};
+            pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 240.f / 40.f, 240.f / 40.f};
+            break;
+        }
+        case eUnitType::WAYPOINT:
+        {
+            pUnit = m_unitPool.alloc<Waypoint>();
+            if (!pUnit) return nullptr;
+            pUnit->sizeType = eUnitSizeType::NONE;
+            break;
+        }
+        default:
+        {
+            return nullptr;
+        }
+    }
+
+    pUnit->position = position;
+    pUnit->type = unitType;
+    pUnit->team = team;
+
+    if (pUnit->team == 1)
+    {
+        pUnit->UVs.y += .5f;
+        pUnit->UVs.w += .5f;
     }
 
     if (pUnit->sizeType == eUnitSizeType::BOX)
@@ -160,12 +338,20 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
         }
     }
 
-    if (!pUnitStart) pUnitStart = pUnit;
-    else
+    // Insert at the right place (We order in Y)
+    auto it = m_units.begin();
+    for (; it != m_units.end(); ++it)
     {
-        pUnitStart->pPrevious = pUnit;
-        pUnit->pNext = pUnitStart;
-        pUnitStart = pUnit;
+        auto pOther = *it;
+        if (pUnit->position.y < pOther->position.y)
+        {
+            m_units.insert(it, pUnit);
+            break;
+        }
+    }
+    if (it == m_units.end())
+    {
+        m_units.push_back(pUnit);
     }
 
     return pUnit;

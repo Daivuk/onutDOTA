@@ -43,9 +43,6 @@
   <tile id="59" terrain="2,2,2,1"/>
   <tile id="60" terrain="2,2,2,2"/>
  </tileset>
- <tileset firstgid="626" name="spawner" tilewidth="40" tileheight="40">
-  <image source="../textures/buildings/spawner.png" width="640" height="640"/>
- </tileset>
  <layer name="Ground0" width="128" height="128">
   <data encoding="base64" compression="zlib">
    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
@@ -68,13 +65,13 @@
     <property name="team" value="0"/>
    </properties>
   </object>
-  <object id="9" type="Spawner" x="960" y="2440" width="120" height="120">
+  <object id="9" type="Spawner" x="960" y="2520" width="120" height="120">
    <properties>
     <property name="next" value="71"/>
     <property name="team" value="0"/>
    </properties>
   </object>
-  <object id="10" type="Critter" x="680" y="3080" width="120" height="120">
+  <object id="10" type="Spawner" x="720" y="3040" width="120" height="120">
    <properties>
     <property name="next" value="76"/>
     <property name="team" value="0"/>
@@ -92,19 +89,19 @@
     <property name="team" value="0"/>
    </properties>
   </object>
-  <object id="14" type="TeamCollision" x="1000" y="2280" width="40" height="160">
+  <object id="14" type="TeamCollision" x="1000" y="2280" width="40" height="240">
    <properties>
     <property name="parent" value="9"/>
     <property name="team" value="0"/>
    </properties>
   </object>
-  <object id="15" type="TeamCollision" x="1000" y="2560" width="40" height="200">
+  <object id="15" type="TeamCollision" x="1000" y="2640" width="40" height="120">
    <properties>
     <property name="parent" value="9"/>
     <property name="team" value="0"/>
    </properties>
   </object>
-  <object id="16" type="TeamCollision" x="800" y="3040" width="40" height="80">
+  <object id="16" type="TeamCollision" x="680" y="3120" width="40" height="80">
    <properties>
     <property name="parent" value="10"/>
     <property name="team" value="0"/>
@@ -369,11 +366,7 @@
     <property name="next" value="70"/>
    </properties>
   </object>
-  <object id="70" type="MinionWaypoint" x="4400" y="1480" width="120" height="120">
-   <properties>
-    <property name="next" value=""/>
-   </properties>
-  </object>
+  <object id="70" type="MinionWaypoint" x="4400" y="1480" width="120" height="120"/>
   <object id="71" type="MinionWaypoint" x="1480" y="2320" width="120" height="120">
    <properties>
     <property name="next" value="72"/>
@@ -394,16 +387,8 @@
     <property name="next" value="75"/>
    </properties>
   </object>
-  <object id="75" type="MinionWaypoint" x="3560" y="2480" width="120" height="120">
-   <properties>
-    <property name="next" value="61"/>
-   </properties>
-  </object>
-  <object id="76" type="MinionWaypoint" x="920" y="3360" width="120" height="120">
-   <properties>
-    <property name="next" value="72"/>
-   </properties>
-  </object>
+  <object id="75" type="MinionWaypoint" x="3560" y="2480" width="120" height="120"/>
+  <object id="76" type="MinionWaypoint" x="920" y="3360" width="120" height="120"/>
   <object id="77" type="MinionWaypoint" x="1000" y="3920" width="120" height="120">
    <properties>
     <property name="next" value="76"/>
