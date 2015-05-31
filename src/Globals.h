@@ -118,5 +118,7 @@ public:
     static onut::RTS *pRTS;
     static Map *pMap;
 
+    static uint32_t rts_frame;
+
     static std::unordered_map<int, std::vector<sAnimRes>> baltAnimsResources;
 };

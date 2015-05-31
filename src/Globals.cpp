@@ -9,6 +9,7 @@ onut::UIControl *Globals::pUIHeader = nullptr;
 onut::RTS *Globals::pRTS = nullptr;
 Map *Globals::pMap = nullptr;
 std::unordered_map<int, std::vector<sAnimRes>> Globals::baltAnimsResources;
+uint32_t Globals::rts_frame = 0;
 
 void Globals::init()
 {

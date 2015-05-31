@@ -4,6 +4,10 @@
 #include "Minion.h"
 #include "Spawner.h"
 
+#define WAVE_INTERVAL 360000
+#define WAVE_MINION_INTERVAL 90
+#define WAVE_COUNT 5
+
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
 
@@ -11,6 +15,9 @@ Game::Game()
 {
     // Randomize
     srand(Globals::myGame.seed);
+
+    Globals::rts_frame = 0;
+    Minion::s_radiusCheckId = 0;
 
     Globals::pMap = new Map(0);
     pUIScreen = new onut::UIControl("../../assets/ui/game.json");
@@ -86,12 +93,22 @@ void Game::update()
 
 void Game::rts_update()
 {
+    Globals::rts_frame++;
     --nextWaveIn;
     if (nextWaveIn <= 0)
     {
-        nextWaveIn = WAVE_INTERVAL;
         // Spawn minions from spawners!
         spawnMinions();
+        minionSpawned++;
+        if (minionSpawned == WAVE_COUNT)
+        {
+            minionSpawned = 0;
+            nextWaveIn = WAVE_INTERVAL;
+        }
+        else
+        {
+            nextWaveIn = WAVE_MINION_INTERVAL;
+        }
     }
     Globals::pMap->rts_update();
 }

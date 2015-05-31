@@ -10,6 +10,7 @@
 Map::Map(int seed)
     : m_tiledMap("../../assets/maps/daivuk.tmx")
     , m_cameraPos(64, 64)
+    , collisions(nullptr)
 {
     decltype(sizeof(Unit)) biggest = 0;
     biggest = std::max<>(biggest, sizeof(Spawner));
@@ -19,8 +20,6 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Minion));
     
     pUnitPool = new OPool(biggest, MAX_UNITS);
-
-    pCollisions = new uint8_t[m_tiledMap.getWidth() * m_tiledMap.getHeight()];
 
     // Read and spawn entities already on the map
     for (auto i = 0; i < m_tiledMap.getLayerCount(); ++i)
@@ -89,6 +88,14 @@ Map::Map(int seed)
         }
     }
 
+    // Generate the nav mesh from tiles. This will be used for path finding
+    auto pCollisionLayer = dynamic_cast<onut::TiledMap::sTileLayer*>(m_tiledMap.getLayer("Collisions"));
+    collisions = new bool[pCollisionLayer->width * pCollisionLayer->height];
+    for (int i = 0; i < pCollisionLayer->width * pCollisionLayer->height; ++i)
+    {
+        collisions[i] = (pCollisionLayer->tileIds[i]) ? true : false;
+    }
+
     // Link all way points
     for (auto pUnit : m_units)
     {
@@ -146,12 +153,15 @@ Map::Map(int seed)
             }
         }
     }
+
+    pPather = new micropather::MicroPather(this);
 }
 
 Map::~Map()
 {
+    if (pPather) delete pPather;
     if (pUnitPool) delete pUnitPool;
-    delete[] pCollisions;
+    if (collisions) delete[] collisions;
 }
 
 Unit *Map::getUnitByMapId(uint32_t mapId)
@@ -188,6 +198,7 @@ void Map::render()
     egModelMult(&transform._11);
 
 #if _DEBUG
+    // Paths from spawners to spawners
     for (auto pUnit : m_units)
     {
         auto pSpawner = dynamic_cast<Spawner*>(pUnit);
@@ -218,6 +229,11 @@ void Map::render()
             }
             OPB->end();
         }
+    }
+
+    for (auto pUnit : m_units)
+    {
+        pUnit->renderDebug();
     }
 #endif
 
@@ -360,7 +376,7 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
         {
             for (auto x = pos[0]; x < pUnit->boxSize.x; ++x)
             {
-                pCollisions[y * m_tiledMap.getWidth() + x] = 0x02;
+                collisions[y * m_tiledMap.getWidth() + x] = true;
             }
         }
     }
@@ -382,4 +398,80 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
     }
 
     return pUnit;
+}
+
+float Map::LeastCostEstimate(void* stateStart, void* stateEnd)
+{
+    int fromX, fromY, toX, toY;
+    nodeToXY(stateStart, &fromX, &fromY);
+    nodeToXY(stateEnd, &toX, &toY);
+
+    int dx = toX - fromX;
+    int dy = toY - fromY;
+
+    return (float)sqrt((double)(dx * dx) + (double)(dy * dy));
+}
+
+void Map::AdjacentCost(void* node, MP_VECTOR< micropather::StateCost > *neighbors)
+{
+    int x, y;
+    const int dx[8] = {1, 1, 0, -1, -1, -1, 0, 1};
+    const int dy[8] = {0, 1, 1, 1, 0, -1, -1, -1};
+    const float cost[8] = {1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f, 1.0f, 1.41f};
+
+    nodeToXY(node, &x, &y);
+
+    for (int i = 0; i<8; ++i)
+    {
+        int nx = x + dx[i];
+        int ny = y + dy[i];
+
+        if (passable(nx, ny))
+        {
+            // Normal floor
+            micropather::StateCost nodeCost = {xyToNode(nx, ny), cost[i]};
+            neighbors->push_back(nodeCost);
+        }
+    }
+}
+
+void Map::PrintStateInfo(void* state)
+{
+}
+
+int Map::findPath(const Vector2 &from, const Vector2 &to, std::vector<Vector2>* path, float* cost)
+{
+    static MP_VECTOR< void* > microPath;
+    auto ret = pPather->Solve(xyToNode((int)from.x, (int)from.y),
+                          xyToNode((int)to.x, (int)to.y),
+                          &microPath, cost);
+    path->clear();
+    int x, y;
+    for (decltype(microPath.size()) i = 0; i < microPath.size(); ++i)
+    {
+        nodeToXY(microPath[i], &x, &y);
+        path->push_back({(float)x + .5f, (float)y + .5f});
+    }
+    return ret;
+}
+
+void Map::nodeToXY(void* node, int* x, int* y)
+{
+    int mapWidth = m_tiledMap.getWidth();
+
+    intptr_t index = (intptr_t)node;
+    *y = index / mapWidth;
+    *x = index - *y * mapWidth;
+}
+
+void* Map::xyToNode(int x, int y)
+{
+    int mapWidth = m_tiledMap.getWidth();
+    return (void*)(y * mapWidth + x);
+}
+
+bool Map::passable(int x, int y)
+{
+    int mapWidth = m_tiledMap.getWidth();
+    return !collisions[y * mapWidth + x];
 }
