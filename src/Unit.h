@@ -46,4 +46,5 @@ public:
     int armor = 0;
     int mana = 0;
     Unit *pTarget = nullptr;
+    bool building = false;
 };

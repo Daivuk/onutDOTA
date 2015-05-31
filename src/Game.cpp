@@ -5,8 +5,8 @@
 #include "Spawner.h"
 
 #define WAVE_INTERVAL 360000
-#define WAVE_MINION_INTERVAL 90
-#define WAVE_COUNT 5
+#define WAVE_MINION_INTERVAL 1
+#define WAVE_COUNT 100
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);

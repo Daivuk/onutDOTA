@@ -21,6 +21,9 @@ Map::Map(int seed)
     
     pUnitPool = new OPool(biggest, MAX_UNITS);
 
+    collisions = new bool[m_tiledMap.getWidth() * m_tiledMap.getHeight()];
+    memset(collisions, 0, sizeof(bool) * m_tiledMap.getWidth() * m_tiledMap.getHeight());
+
     // Read and spawn entities already on the map
     for (auto i = 0; i < m_tiledMap.getLayerCount(); ++i)
     {
@@ -90,10 +93,9 @@ Map::Map(int seed)
 
     // Generate the nav mesh from tiles. This will be used for path finding
     auto pCollisionLayer = dynamic_cast<onut::TiledMap::sTileLayer*>(m_tiledMap.getLayer("Collisions"));
-    collisions = new bool[pCollisionLayer->width * pCollisionLayer->height];
     for (int i = 0; i < pCollisionLayer->width * pCollisionLayer->height; ++i)
     {
-        collisions[i] = (pCollisionLayer->tileIds[i]) ? true : false;
+        collisions[i] = (pCollisionLayer->tileIds[i]) ? true : collisions[i];
     }
 
     // Link all way points
@@ -317,6 +319,7 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
                 240.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
                 440.f / pUnit->pTexture->getSizef().x, 200.f / pUnit->pTexture->getSizef().y};
             pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 200.f / 40.f, 200.f / 40.f};
+            pUnit->building = true;
             break;
         }
         case eUnitType::NEXUS:
@@ -330,6 +333,7 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
                 0.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
                 240.f / pUnit->pTexture->getSizef().x, 240.f / pUnit->pTexture->getSizef().y};
             pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 240.f / 40.f, 240.f / 40.f};
+            pUnit->building = true;
             break;
         }
         case eUnitType::WAYPOINT:
@@ -369,12 +373,12 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
         pUnit->UVs.w += .5f;
     }
 
-    if (pUnit->sizeType == eUnitSizeType::BOX)
+    if (pUnit->building && pUnit->sizeType == eUnitSizeType::BOX)
     {
         int pos[2] = {(int)round(pUnit->position.x), (int)round(pUnit->position.y)};
-        for (auto y = pos[1]; y < pUnit->boxSize.y; ++y)
+        for (auto y = pos[1]; y < pos[1] + pUnit->boxSize.y; ++y)
         {
-            for (auto x = pos[0]; x < pUnit->boxSize.x; ++x)
+            for (auto x = pos[0]; x < pos[0] + pUnit->boxSize.x; ++x)
             {
                 collisions[y * m_tiledMap.getWidth() + x] = true;
             }

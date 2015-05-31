@@ -50,7 +50,7 @@ void Minion::rts_update()
             if (Vector2::DistanceSquared(position, targetPos) <= MINION_TARGET_TOUCH_RADIUS * MINION_TARGET_TOUCH_RADIUS)
             {
                 // Randomly pick a free spot on the map
-                if (path.empty())
+                while (path.empty())
                 {
                     while (true)
                     {
@@ -229,6 +229,7 @@ void Minion::restartAnim()
 #if _DEBUG
 void Minion::renderDebug()
 {
+    return;
     if (state == eState::WALK_TO)
     {
         OPB->begin(onut::ePrimitiveType::LINE_STRIP);
