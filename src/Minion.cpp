@@ -2,18 +2,53 @@
 #include "Waypoint.h"
 
 static const float MINION_WALK_SPEED = 2.f;
-static const float MINION_TARGET_TOUCH_RADIUS = .5f;
+static const float MINION_TARGET_TOUCH_RADIUS = 1.5f;
 static const float MINION_TARGET_DETECT_RANGE = 4.f;
 static const float MINION_ATTACK_RANGE = 3.f;
 static const int MINION_ATTACK_SWITCH_IDLE_DELAY = 10;
 static const int MINION_ATTACK_DELAY = 120;
 static const uint32_t MINION_RADIUS_CHECK_INTERVALE = 15;
+static const float MINION_STEER_RANGE = 1.f;
 
 uint32_t Minion::s_radiusCheckId = 0;
 
 Minion::Minion()
     : radiusCheckId(s_radiusCheckId++)
 {
+}
+
+void Minion::steer(const Vector2 &otherPos, Vector2 &dir, float strength)
+{
+    Vector2 dirWithOther = otherPos - position;
+    dirWithOther.Normalize();
+    Vector2 steerDir = dir - dirWithOther;
+    if (steerDir.LengthSquared() == 0)
+    {
+        steerDir.x = -dir.y;
+        steerDir.y = dir.x;
+    }
+    if (dir.Dot(dirWithOther) > 0.f)
+    {
+        dir -= dirWithOther * strength * .5f;
+    }
+    steerDir.Normalize();
+    dir += steerDir * strength;
+    dir.Normalize();
+}
+
+void Minion::steerFromTile(int tileX, int tileY, Vector2 &dir)
+{
+    if (Globals::pMap->passable(tileX, tileY)) return;
+
+    Vector2 tilePos{(float)tileX + .5f, (float)tileY + .5f};
+    float dis = Vector2::DistanceSquared(position, tilePos);
+    if (dis <= MINION_STEER_RANGE * MINION_STEER_RANGE)
+    {
+        dis = sqrtf(dis);
+        float steerForce = (dis - radius) / (MINION_STEER_RANGE - radius);
+        steerForce = 1 - pow(steerForce, 3.f);
+        steer(tilePos, dir, steerForce);
+    }
 }
 
 void Minion::rts_update()
@@ -25,7 +60,54 @@ void Minion::rts_update()
         {
             Vector2 dir = targetPos - position;
             dir.Normalize();
+
+            // Steer against others
+            auto &units = Globals::pMap->getUnits();
+            for (auto pUnit : units)
+            {
+                if (pUnit == this) continue;
+                if (pUnit->category != eUnitCategory::GROUND) continue;
+                float dis = Vector2::DistanceSquared(position, pUnit->position);
+                if (dis <= MINION_STEER_RANGE * MINION_STEER_RANGE)
+                {
+                    dis = sqrtf(dis);
+                    float steerForce = 1.f - (dis - radius) / (MINION_STEER_RANGE - radius);
+                    steer(pUnit->position, dir, steerForce);
+                }
+            }
+
+            // Steer away from collision walls even more greathly
+            steerFromTile((int)position.x - 1, (int)position.y, dir);
+            steerFromTile((int)position.x + 1, (int)position.y, dir);
+            steerFromTile((int)position.x, (int)position.y - 1, dir);
+            steerFromTile((int)position.x, (int)position.y + 1, dir);
+
             position += dir * MINION_WALK_SPEED * ODT;
+
+            // Update direction based on the dir
+            auto oldDirection = direction;
+            if (dir.y > 0.f && std::abs(dir.x) <= std::abs(dir.y))
+            {
+                direction = BALT_DOWN;
+            }
+            else if (dir.y < 0.f && std::abs(dir.x) <= std::abs(dir.y))
+            {
+                direction = BALT_UP;
+            }
+            else if (dir.x > 0.f)
+            {
+                direction = BALT_RIGHT;
+            }
+            else
+            {
+                direction = BALT_LEFT;
+            }
+
+            if (oldDirection != direction)
+            {
+                anim.pAnimRes = &Globals::baltAnimsResources[direction | BALT_WALK][team];
+            }
+
             // Check if there is an ennemy in range
             //if ((radiusCheckId + Globals::rts_frame) % MINION_RADIUS_CHECK_INTERVALE == 0)
             //{
@@ -107,7 +189,7 @@ void Minion::rts_update()
         default:
             break;
     }
-    updateDirection();
+    //updateDirection();
 
     // Update animation
     anim.progress += ODT * (float)anim.pAnimRes->pAnimDef->fps;

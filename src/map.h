@@ -49,4 +49,5 @@ public:
     std::list<Unit *> m_units;
     bool *collisions = nullptr;
     micropather::MicroPather *pPather = nullptr;
+    int entityLayerIndex = 0;
 };

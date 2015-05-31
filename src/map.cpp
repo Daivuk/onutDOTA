@@ -29,6 +29,7 @@ Map::Map(int seed)
     {
         auto pObjectLayer = dynamic_cast<onut::TiledMap::sObjectLayer*>(m_tiledMap.getLayer(i));
         if (!pObjectLayer) continue;
+        entityLayerIndex = i;
         for (uint32_t j = 0; j < pObjectLayer->objectCount; ++j)
         {
             auto pObject = pObjectLayer->pObjects[j];
@@ -191,7 +192,10 @@ void Map::render()
     rect.bottom = static_cast<LONG>((m_cameraPos.y * 40 + OScreenHf * .5f) / 40.f);
 
     // Draw the visible part of the map
-    m_tiledMap.render(rect);
+    for (int i = 0; i < entityLayerIndex; ++i)
+    {
+        m_tiledMap.renderLayer(rect, i);
+    }
 
     // Draw units
     transform = Matrix::CreateScale(40.f, 40.f, 1.f) * transform;
@@ -250,6 +254,11 @@ void Map::render()
     OSB->end();
 
     egModelPop();
+
+    for (int i = entityLayerIndex + 1; i < m_tiledMap.getLayerCount(); ++i)
+    {
+        m_tiledMap.renderLayer(rect, i);
+    }
 }
 
 void Map::update()
@@ -300,6 +309,26 @@ void Map::rts_update()
     {
         pUnit->rts_update();
     }
+
+    // Reorder units based on the y position
+    if (!m_units.empty())
+    {
+        auto prev = m_units.begin();
+        auto end = m_units.end();
+        auto it = prev;
+        ++it;
+        for (; it != end; ++it)
+        {
+            auto pPrevUnit = *prev;
+            auto pUnit = *it;
+            if (pUnit->position.y + pUnit->yOffset < pPrevUnit->position.y + pPrevUnit->yOffset)
+            {
+                *it = pPrevUnit;
+                *prev = pUnit;
+            }
+            prev = it;
+        }
+    }
 }
 
 Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
@@ -319,7 +348,8 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
                 240.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
                 440.f / pUnit->pTexture->getSizef().x, 200.f / pUnit->pTexture->getSizef().y};
             pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 200.f / 40.f, 200.f / 40.f};
-            pUnit->building = true;
+            pUnit->category = eUnitCategory::BUILDLING;
+            pUnit->yOffset = 3.f;
             break;
         }
         case eUnitType::NEXUS:
@@ -333,7 +363,8 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
                 0.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
                 240.f / pUnit->pTexture->getSizef().x, 240.f / pUnit->pTexture->getSizef().y};
             pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 240.f / 40.f, 240.f / 40.f};
-            pUnit->building = true;
+            pUnit->category = eUnitCategory::BUILDLING;
+            pUnit->yOffset = 4.f;
             break;
         }
         case eUnitType::WAYPOINT:
@@ -355,6 +386,7 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
             auto &animRes = *pMinion->anim.pAnimRes;
             pUnit->UVs = animRes.frames[0].UVs;
             pUnit->spriteOffsetAndSize = {animRes.frames[0].offset.x, animRes.frames[0].offset.y, animRes.frames[0].size.x, animRes.frames[0].size.y};
+            pUnit->category = eUnitCategory::GROUND;
             break;
         }
         default:
@@ -373,7 +405,7 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
         pUnit->UVs.w += .5f;
     }
 
-    if (pUnit->building && pUnit->sizeType == eUnitSizeType::BOX)
+    if (pUnit->category == eUnitCategory::BUILDLING && pUnit->sizeType == eUnitSizeType::BOX)
     {
         int pos[2] = {(int)round(pUnit->position.x), (int)round(pUnit->position.y)};
         for (auto y = pos[1]; y < pos[1] + pUnit->boxSize.y; ++y)

@@ -22,6 +22,13 @@ enum class eUnitSizeType : uint8_t
     BOX
 };
 
+enum class eUnitCategory : uint8_t
+{
+    NONE,
+    BUILDLING,
+    GROUND
+};
+
 class Unit
 {
 public:
@@ -46,5 +53,6 @@ public:
     int armor = 0;
     int mana = 0;
     Unit *pTarget = nullptr;
-    bool building = false;
+    eUnitCategory category = eUnitCategory::NONE;
+    float yOffset = 0.f;
 };

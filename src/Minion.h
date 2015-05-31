@@ -19,6 +19,8 @@ public:
 #if _DEBUG
     void renderDebug();
 #endif
+    void steer(const Vector2 &otherPos, Vector2 &dir, float strength);
+    void steerFromTile(int tileX, int tileY, Vector2 &dir);
 
     enum class eState
     {
