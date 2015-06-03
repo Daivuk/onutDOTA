@@ -8,7 +8,7 @@ static const float MINION_ATTACK_RANGE = 3.f;
 static const int MINION_ATTACK_SWITCH_IDLE_DELAY = 10;
 static const int MINION_ATTACK_DELAY = 120;
 static const uint32_t MINION_RADIUS_CHECK_INTERVALE = 15;
-static const float MINION_STEER_RANGE = 1.f;
+static const float MINION_STEER_RANGE = 0.75f;
 
 uint32_t Minion::s_radiusCheckId = 0;
 
@@ -27,10 +27,10 @@ void Minion::steer(const Vector2 &otherPos, Vector2 &dir, float strength)
         steerDir.x = -dir.y;
         steerDir.y = dir.x;
     }
-    if (dir.Dot(dirWithOther) > 0.f)
-    {
-        dir -= dirWithOther * strength * .5f;
-    }
+    //if (dir.Dot(dirWithOther) > 0.f)
+    //{
+    //    dir -= dirWithOther * strength * .5f;
+    //}
     steerDir.Normalize();
     dir += steerDir * strength;
     dir.Normalize();
@@ -62,25 +62,37 @@ void Minion::rts_update()
             dir.Normalize();
 
             // Steer against others
-            auto &units = Globals::pMap->getUnits();
-            for (auto pUnit : units)
+            int chunkFromX = (int)(position.x - MINION_STEER_RANGE - radius) / CHUNK_SIZE;
+            int chunkFromY = (int)(position.y - MINION_STEER_RANGE - radius) / CHUNK_SIZE;
+            int chunkToX = (int)(position.x + MINION_STEER_RANGE + radius) / CHUNK_SIZE;
+            int chunkToY = (int)(position.y + MINION_STEER_RANGE + radius) / CHUNK_SIZE;
+
+            for (int chunkY = chunkFromY; chunkY <= chunkToY; ++chunkY)
             {
-                if (pUnit == this) continue;
-                if (pUnit->category != eUnitCategory::GROUND) continue;
-                float dis = Vector2::DistanceSquared(position, pUnit->position);
-                if (dis <= MINION_STEER_RANGE * MINION_STEER_RANGE)
+                for (int chunkX = chunkFromX; chunkX <= chunkToX; ++chunkX)
                 {
-                    dis = sqrtf(dis);
-                    float steerForce = 1.f - (dis - radius) / (MINION_STEER_RANGE - radius);
-                    steer(pUnit->position, dir, steerForce);
+                    auto pChunk = Globals::pMap->pChunks + (chunkY * Globals::pMap->chunkXCount + chunkX);
+                    for (auto pUnit = pChunk->pUnits->Head(); pUnit; pUnit = pChunk->pUnits->Next(pUnit))
+                    {
+                        if (pUnit == this) continue;
+                        if (pUnit->category != eUnitCategory::GROUND) continue;
+                        float dis = Vector2::DistanceSquared(position, pUnit->position);
+                        if (dis <= MINION_STEER_RANGE * MINION_STEER_RANGE + radius * radius)
+                        {
+                            dis = sqrtf(dis);
+                            dis -= radius;
+                            float steerForce = 1.f - (dis - radius) / (MINION_STEER_RANGE - radius);
+                            steer(pUnit->position, dir, steerForce);
+                        }
+                    }
                 }
             }
 
             // Steer away from collision walls even more greathly
-            steerFromTile((int)position.x - 1, (int)position.y, dir);
-            steerFromTile((int)position.x + 1, (int)position.y, dir);
-            steerFromTile((int)position.x, (int)position.y - 1, dir);
-            steerFromTile((int)position.x, (int)position.y + 1, dir);
+            //steerFromTile((int)position.x - 1, (int)position.y, dir);
+            //steerFromTile((int)position.x + 1, (int)position.y, dir);
+            //steerFromTile((int)position.x, (int)position.y - 1, dir);
+            //steerFromTile((int)position.x, (int)position.y + 1, dir);
 
             position += dir * MINION_WALK_SPEED * ODT;
 

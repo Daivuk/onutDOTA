@@ -7,6 +7,16 @@
 #include "Waypoint.h"
 #include "Minion.h"
 
+sMapChunk::sMapChunk()
+{
+    pUnits = new TList<Unit>(offsetOf(&Unit::linkChunk));
+}
+
+sMapChunk::~sMapChunk()
+{
+    delete pUnits;
+}
+
 Map::Map(int seed)
     : m_tiledMap("../../assets/maps/daivuk.tmx")
     , m_cameraPos(64, 64)
@@ -20,6 +30,11 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Minion));
     
     pUnitPool = new OPool(biggest, MAX_UNITS);
+    pUnits = new TList<Unit>(offsetOf(&Unit::linkMain));
+
+    chunkXCount = (m_tiledMap.getWidth() / CHUNK_SIZE + 1);
+    chunkYCount = (m_tiledMap.getHeight() / CHUNK_SIZE + 1);
+    pChunks = new sMapChunk[chunkXCount * chunkYCount];
 
     collisions = new bool[m_tiledMap.getWidth() * m_tiledMap.getHeight()];
     memset(collisions, 0, sizeof(bool) * m_tiledMap.getWidth() * m_tiledMap.getHeight());
@@ -100,7 +115,7 @@ Map::Map(int seed)
     }
 
     // Link all way points
-    for (auto pUnit : m_units)
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnit->linkMain.Next())
     {
         auto pSpawner = dynamic_cast<Spawner*>(pUnit);
         if (!pSpawner) continue;
@@ -116,7 +131,7 @@ Map::Map(int seed)
                 auto pNext = getUnitByMapId(pWaypoint->nextWayPointId);
                 if (pNext == pPrevious || !pNext)
                 {
-                    for (auto pOther : m_units)
+                    for (auto pOther = pUnits->Head(); pOther; pOther = pOther->linkMain.Next())
                     {
                         if (pOther == pWaypoint) continue;
                         auto pOtherWaypoint = dynamic_cast<Waypoint*>(pOther);
@@ -162,6 +177,7 @@ Map::Map(int seed)
 
 Map::~Map()
 {
+    if (pUnits) delete pUnits;
     if (pPather) delete pPather;
     if (pUnitPool) delete pUnitPool;
     if (collisions) delete[] collisions;
@@ -169,7 +185,7 @@ Map::~Map()
 
 Unit *Map::getUnitByMapId(uint32_t mapId)
 {
-    for (auto pUnit : m_units)
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
         if (pUnit->mapId == mapId) return pUnit;
     }
@@ -203,9 +219,9 @@ void Map::render()
     egModelIdentity();
     egModelMult(&transform._11);
 
-#if _DEBUG
+#if 0
     // Paths from spawners to spawners
-    for (auto pUnit : m_units)
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
         auto pSpawner = dynamic_cast<Spawner*>(pUnit);
         if (pSpawner)
@@ -237,16 +253,37 @@ void Map::render()
         }
     }
 
-    for (auto pUnit : m_units)
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
         pUnit->renderDebug();
     }
+    OSB->begin();
+    for (int y = 0; y < chunkYCount; ++y)
+    {
+        for (int x = 0; x < chunkXCount; ++x)
+        {
+            auto pChunk = pChunks + (y * chunkXCount + x);
+            if (pChunk->pUnits->Empty()) continue;
+            int entityCount = 0;
+            for (auto pUnit = pChunk->pUnits->Head(); pUnit; pUnit = pChunk->pUnits->Next(pUnit))
+            {
+                ++entityCount;
+            }
+            Color color = {(float)entityCount / 10.f, 1 - (float)entityCount / 10.f, 0, 1};
+#define THICKNESS (1.f / 40.f)
+            OSB->drawRect(nullptr, {(float)x * CHUNK_SIZE, (float)y * CHUNK_SIZE, THICKNESS, CHUNK_SIZE}, color);
+            OSB->drawRect(nullptr, {(float)x * CHUNK_SIZE + CHUNK_SIZE - THICKNESS, (float)y * CHUNK_SIZE, THICKNESS, CHUNK_SIZE}, color);
+            OSB->drawRect(nullptr, {(float)x * CHUNK_SIZE, (float)y * CHUNK_SIZE, CHUNK_SIZE, THICKNESS}, color);
+            OSB->drawRect(nullptr, {(float)x * CHUNK_SIZE, (float)y * CHUNK_SIZE + CHUNK_SIZE - THICKNESS, CHUNK_SIZE, THICKNESS}, color);
+        }
+    }
+    OSB->end();
 #endif
 
     OSB->begin();
     egStatePush();
     egFilter(EG_FILTER_NEAREST);
-    for (auto pUnit : m_units)
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
         pUnit->render();
     }
@@ -305,26 +342,32 @@ void Map::update()
 void Map::rts_update()
 {
     // Update units
-    for (auto pUnit : m_units)
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
         pUnit->rts_update();
+
+        // Check if we should change chunk
+        auto pChunk = getChunkAt(pUnit->position);
+        if (pChunk && pChunk != pUnit->pChunk)
+        {
+            pUnit->pChunk = pChunk;
+            pChunk->pUnits->InsertTail(pUnit);
+        }
     }
 
     // Reorder units based on the y position
-    if (!m_units.empty())
+    if (pUnits->Head())
     {
-        auto prev = m_units.begin();
-        auto end = m_units.end();
+        auto prev = pUnits->Head();
         auto it = prev;
-        ++it;
-        for (; it != end; ++it)
+        it = it->linkMain.Next();
+        for (; it; it = it->linkMain.Next())
         {
-            auto pPrevUnit = *prev;
-            auto pUnit = *it;
+            auto pPrevUnit = prev;
+            auto pUnit = it;
             if (pUnit->position.y + pUnit->yOffset < pPrevUnit->position.y + pPrevUnit->yOffset)
             {
-                *it = pPrevUnit;
-                *prev = pUnit;
+                it->linkMain.InsertBefore(it, &prev->linkMain);
             }
             prev = it;
         }
@@ -418,19 +461,26 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
     }
 
     // Insert at the right place (We order in Y)
-    auto it = m_units.begin();
-    for (; it != m_units.end(); ++it)
+    auto pOther = pUnits->Head();
+    for (; pOther; pOther = pOther->linkMain.Next())
     {
-        auto pOther = *it;
         if (pUnit->position.y < pOther->position.y)
         {
-            m_units.insert(it, pUnit);
+            pUnits->InsertBefore(pUnit, pOther);
             break;
         }
     }
-    if (it == m_units.end())
+    if (!pOther)
     {
-        m_units.push_back(pUnit);
+        pUnits->InsertTail(pUnit);
+    }
+
+    // Put in right chun
+    auto pChunk = getChunkAt(pUnit->position);
+    if (pChunk)
+    {
+        pUnit->pChunk = pChunk;
+        pChunk->pUnits->InsertTail(pUnit);
     }
 
     return pUnit;

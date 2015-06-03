@@ -4,6 +4,15 @@
 #include "micropather.h"
 
 #define MAX_UNITS 2048
+#define CHUNK_SIZE 4
+
+struct sMapChunk
+{
+    TList<Unit> *pUnits;
+
+    sMapChunk();
+    ~sMapChunk();
+};
 
 class Map : public onut::Object, public micropather::Graph
 {
@@ -21,7 +30,7 @@ public:
     std::vector<Tunit*> getUnits()
     {
         std::vector<Tunit*> ret;
-        for (auto pUnit : m_units)
+        for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
         {
             auto pTunit = dynamic_cast<Tunit*>(pUnit);
             if (pTunit)
@@ -31,7 +40,16 @@ public:
         }
         return std::move(ret);
     }
-    const std::list<Unit *> &getUnits() const { return m_units; }
+    TList<Unit> *getUnits() const { return pUnits; }
+
+    sMapChunk *getChunkAt(const Vector2 &pos)
+    {
+        if (pos.x < 0 || pos.y < 0 || pos.x >= (float)m_tiledMap.getWidth() || pos.y >= (float)m_tiledMap.getHeight()) return nullptr;
+        int chunkX = (int)pos.x / CHUNK_SIZE;
+        int chunkY = (int)pos.y / CHUNK_SIZE;
+        auto chunkIdk = chunkY * chunkYCount + chunkX;
+        return pChunks + chunkIdk;
+    }
 
     // A* stuff
     float LeastCostEstimate(void* stateStart, void* stateEnd) override;
@@ -44,10 +62,13 @@ public:
 
 public:
     onut::TiledMap m_tiledMap;
+    sMapChunk *pChunks;
     Vector2 m_cameraPos;
     OPool *pUnitPool = nullptr;
-    std::list<Unit *> m_units;
+    TList<Unit> *pUnits = nullptr;
     bool *collisions = nullptr;
     micropather::MicroPather *pPather = nullptr;
     int entityLayerIndex = 0;
+    int chunkXCount = 0;
+    int chunkYCount = 0;
 };

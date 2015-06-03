@@ -29,15 +29,22 @@ enum class eUnitCategory : uint8_t
     GROUND
 };
 
+struct sMapChunk;
+
 class Unit
 {
 public:
+    Unit();
+
     virtual void render();
     virtual void rts_update();
     Vector2 getCenter() const;
 #if _DEBUG
     virtual void renderDebug() {}
 #endif
+
+    LIST_LINK(Unit) linkMain;
+    LIST_LINK(Unit) linkChunk;
 
     eUnitType type = eUnitType::NONE;
     eUnitSizeType sizeType = eUnitSizeType::RADIUS;
@@ -55,4 +62,5 @@ public:
     Unit *pTarget = nullptr;
     eUnitCategory category = eUnitCategory::NONE;
     float yOffset = 0.f;
+    sMapChunk *pChunk;
 };

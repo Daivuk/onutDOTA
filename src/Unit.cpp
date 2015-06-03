@@ -1,4 +1,10 @@
 #include "Unit.h"
+#include "map.h"
+
+Unit::Unit()
+    : pChunk(nullptr)
+{
+}
 
 void Unit::render()
 {
