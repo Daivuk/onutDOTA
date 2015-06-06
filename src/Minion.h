@@ -1,42 +1,15 @@
 #pragma once
 
-#include "Globals.h"
-#include "micropather.h"
+#include "Unit.h"
 
 class Minion : public Unit
 {
 public:
     Minion();
 
-    virtual void rts_update();
+    virtual void onReachDestination() override;
     
-    void idle();
-    void walkTo(Unit *in_pWaypoint);
-    void walkTo(const Vector2 &in_targetPos);
-    void restartAnim();
-    void updateDirection();
-    void attack(Unit *in_pTarget);
-#if _DEBUG
-    void renderDebug();
-#endif
-    void steer(const Vector2 &otherPos, Vector2 &dir, float strength);
-    void steerFromTile(int tileX, int tileY, Vector2 &dir);
+    void setWayPoint(Unit *in_pWaypoint);
 
-    enum class eState
-    {
-        IDLE,
-        WALK_TO,
-        WALK_TO_TARGET,
-        ATTACK
-    } state = eState::IDLE;
-
-    sAnim anim;
-    Vector2 targetPos;
-    int direction = 0;
     Unit *pWaypoint = nullptr;
-    int attackDelay = 0;
-    uint32_t radiusCheckId = 0;
-    static uint32_t s_radiusCheckId;
-    uint32_t frame = 0;
-    std::vector<Vector2> path;
 };

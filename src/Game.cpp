@@ -6,7 +6,7 @@
 
 #define WAVE_INTERVAL 360000
 #define WAVE_MINION_INTERVAL 10
-#define WAVE_COUNT 160
+#define WAVE_COUNT 150
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -17,7 +17,6 @@ Game::Game()
     srand(Globals::myGame.seed);
 
     Globals::rts_frame = 0;
-    Minion::s_radiusCheckId = 0;
 
     Globals::pMap = new Map(0);
     pUIScreen = new onut::UIControl("../../assets/ui/game.json");
@@ -119,7 +118,7 @@ void Game::spawnMinions()
     for (auto pSpawner : spawners)
     {
         auto pMinion = dynamic_cast<Minion*>(Globals::pMap->spawn(pSpawner->getCenter(), eUnitType::MINION, pSpawner->team));
-        pMinion->walkTo(pSpawner->pFirstWaypoint);
+        pMinion->setWayPoint(pSpawner->pFirstWaypoint);
     }
 }
 

@@ -24,7 +24,7 @@ public:
     void update();
     void rts_update();
 
-    Unit *spawn(const Vector2 &position, eUnitType unitType, int team);
+    Unit *spawn(const Vector2 &position, eUnitType unitType, int team, bool bSendEvent = false);
     Unit *getUnitByMapId(uint32_t mapId);
     template<typename Tunit>
     std::vector<Tunit*> getUnits()

@@ -92,6 +92,7 @@
     <ClCompile Include="..\..\src\Credits.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Globals.cpp" />
+    <ClCompile Include="..\..\src\Hero.cpp" />
     <ClCompile Include="..\..\src\Joining.cpp" />
     <ClCompile Include="..\..\src\Login.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="..\..\src\Credits.h" />
     <ClInclude Include="..\..\src\Game.h" />
     <ClInclude Include="..\..\src\Globals.h" />
+    <ClInclude Include="..\..\src\Hero.h" />
     <ClInclude Include="..\..\src\Joining.h" />
     <ClInclude Include="..\..\src\Login.h" />
     <ClInclude Include="..\..\src\Main.h" />
@@ -119,6 +121,7 @@
     <ClInclude Include="..\..\src\SignUp.h" />
     <ClInclude Include="..\..\src\Spawner.h" />
     <ClInclude Include="..\..\src\Unit.h" />
+    <ClInclude Include="..\..\src\UnitAnim.h" />
     <ClInclude Include="..\..\src\View.h" />
     <ClInclude Include="..\..\src\Waypoint.h" />
   </ItemGroup>

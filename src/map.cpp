@@ -26,7 +26,6 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Spawner));
     biggest = std::max<>(biggest, sizeof(Nexus));
     biggest = std::max<>(biggest, sizeof(Waypoint));
-    biggest = std::max<>(biggest, sizeof(Waypoint));
     biggest = std::max<>(biggest, sizeof(Minion));
     
     pUnitPool = new OPool(biggest, MAX_UNITS);
@@ -48,7 +47,7 @@ Map::Map(int seed)
         for (uint32_t j = 0; j < pObjectLayer->objectCount; ++j)
         {
             auto pObject = pObjectLayer->pObjects[j];
-            int team;
+            int team = -1;
             pObject.position /= 40.f;
             pObject.size /= 40.f;
             if (pObject.properties.find("team") != pObject.properties.end())
@@ -62,46 +61,40 @@ Map::Map(int seed)
                     continue;
                 }
             }
-            Unit *pUnit = nullptr;
-            if (pObject.type == "Spawner")
-            {
-                pUnit = spawn(pObject.position, eUnitType::SPAWNER, team);
-                if (pUnit)
-                {
-                    auto pSpawner = dynamic_cast<Spawner*>(pUnit);
-                    try
-                    {
-                        pSpawner->firstWaypoiuntId = std::stoi(pObject.properties["next"]);
-                    }
-                    catch (std::exception e) 
-                    {
-                        pSpawner->firstWaypoiuntId = 0;
-                    }
-                }
-            }
-            else if (pObject.type == "Nexus")
-            {
-                pUnit = spawn(pObject.position, eUnitType::NEXUS, team);
-            }
-            else if (pObject.type == "MinionWaypoint")
-            {
-                pUnit = spawn(pObject.position, eUnitType::WAYPOINT, -1);
-                if (pUnit)
-                {
-                    auto pWaypoint = dynamic_cast<Waypoint*>(pUnit);
-                    try
-                    {
-                        pWaypoint->nextWayPointId = std::stoi(pObject.properties["next"]);
-                    }
-                    catch (std::exception e) 
-                    {
-                        pWaypoint->nextWayPointId = 0;
-                    }
-                    pUnit->boxSize = {(LONG)pObject.size.x, (LONG)pObject.size.y};
-                }
-            }
+            if (Globals::unitTypesByName.find(pObject.type) == Globals::unitTypesByName.end()) continue;
+            Unit *pUnit = spawn(pObject.position, Globals::unitTypesByName[pObject.type], team, false);
             if (pUnit)
             {
+                pUnit->boxSize = {(int)pObject.size.x, (int)pObject.size.y};
+                switch (pUnit->type)
+                {
+                    case eUnitType::SPAWNER:
+                    {
+                        auto pSpawner = dynamic_cast<Spawner *>(pUnit);
+                        try
+                        {
+                            pSpawner->firstWaypoiuntId = std::stoi(pObject.properties["next"]);
+                        }
+                        catch (std::exception e)
+                        {
+                            pSpawner->firstWaypoiuntId = 0;
+                        }
+                        break;
+                    }
+                    case eUnitType::WAYPOINT:
+                    {
+                        auto pWaypoint = dynamic_cast<Waypoint *>(pUnit);
+                        try
+                        {
+                            pWaypoint->nextWayPointId = std::stoi(pObject.properties["next"]);
+                        }
+                        catch (std::exception e)
+                        {
+                            pWaypoint->nextWayPointId = 0;
+                        }
+                        break;
+                    }
+                }
                 pUnit->mapId = pObject.id;
             }
         }
@@ -173,6 +166,11 @@ Map::Map(int seed)
     }
 
     pPather = new micropather::MicroPather(this);
+
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
+    {
+        pUnit->onSpawn();
+    }
 }
 
 Map::~Map()
@@ -365,7 +363,7 @@ void Map::rts_update()
         {
             auto pPrevUnit = prev;
             auto pUnit = it;
-            if (pUnit->position.y + pUnit->yOffset < pPrevUnit->position.y + pPrevUnit->yOffset)
+            if (pUnit->position.y + pUnit->pType->yOffset < pPrevUnit->position.y + pPrevUnit->pType->yOffset)
             {
                 it->linkMain.InsertBefore(it, &prev->linkMain);
             }
@@ -374,81 +372,18 @@ void Map::rts_update()
     }
 }
 
-Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
+Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team, bool bSendEvent)
 {
     // Alloc a new unit
-    Unit *pUnit = nullptr;
-    switch (unitType)
-    {
-        case eUnitType::SPAWNER:
-        {
-            pUnit = pUnitPool->alloc<Spawner>();
-            if (!pUnit) return nullptr;
-            pUnit->sizeType = eUnitSizeType::BOX;
-            pUnit->boxSize = {3, 3};
-            pUnit->pTexture = OGetTexture("buildings/buildings.png");
-            pUnit->UVs = {
-                240.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
-                440.f / pUnit->pTexture->getSizef().x, 200.f / pUnit->pTexture->getSizef().y};
-            pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 200.f / 40.f, 200.f / 40.f};
-            pUnit->category = eUnitCategory::BUILDLING;
-            pUnit->yOffset = 3.f;
-            break;
-        }
-        case eUnitType::NEXUS:
-        {
-            pUnit = pUnitPool->alloc<Nexus>();
-            if (!pUnit) return nullptr;
-            pUnit->sizeType = eUnitSizeType::BOX;
-            pUnit->boxSize = {4, 4};
-            pUnit->pTexture = OGetTexture("buildings/buildings.png");
-            pUnit->UVs = {
-                0.f / pUnit->pTexture->getSizef().x, 0.f / pUnit->pTexture->getSizef().y, 
-                240.f / pUnit->pTexture->getSizef().x, 240.f / pUnit->pTexture->getSizef().y};
-            pUnit->spriteOffsetAndSize = {-40.f / 40.f, -40.f / 40.f, 240.f / 40.f, 240.f / 40.f};
-            pUnit->category = eUnitCategory::BUILDLING;
-            pUnit->yOffset = 4.f;
-            break;
-        }
-        case eUnitType::WAYPOINT:
-        {
-            pUnit = pUnitPool->alloc<Waypoint>();
-            if (!pUnit) return nullptr;
-            pUnit->sizeType = eUnitSizeType::BOX;
-            break;
-        }
-        case eUnitType::MINION:
-        {
-            pUnit = pUnitPool->alloc<Minion>();
-            if (!pUnit) return nullptr;
-            pUnit->sizeType = eUnitSizeType::RADIUS;
-            pUnit->radius = .25f;
-            pUnit->pTexture = OGetTexture("minions/beggarPlateArmor.png");
-            auto pMinion = dynamic_cast<Minion*>(pUnit);
-            pMinion->anim.pAnimRes = &Globals::baltAnimsResources[BALT_DOWN | BALT_IDLE][team];
-            auto &animRes = *pMinion->anim.pAnimRes;
-            pUnit->UVs = animRes.frames[0].UVs;
-            pUnit->spriteOffsetAndSize = {animRes.frames[0].offset.x, animRes.frames[0].offset.y, animRes.frames[0].size.x, animRes.frames[0].size.y};
-            pUnit->category = eUnitCategory::GROUND;
-            break;
-        }
-        default:
-        {
-            return nullptr;
-        }
-    }
+    Unit *pUnit = Globals::unitTypes[unitType].pFactory->create(pUnitPool);
+    pUnit->pType = &Globals::unitTypes[unitType];
 
+    pUnit->anim.pAnimDef = pUnit->pType->anims[BALT_IDLE | BALT_DOWN];
     pUnit->position = position;
     pUnit->type = unitType;
     pUnit->team = team;
 
-    if (pUnit->team == 1)
-    {
-        pUnit->UVs.y += .5f;
-        pUnit->UVs.w += .5f;
-    }
-
-    if (pUnit->category == eUnitCategory::BUILDLING && pUnit->sizeType == eUnitSizeType::BOX)
+    if (pUnit->pType->category == eUnitCategory::BUILDLING && pUnit->pType->sizeType == eUnitSizeType::BOX)
     {
         int pos[2] = {(int)round(pUnit->position.x), (int)round(pUnit->position.y)};
         for (auto y = pos[1]; y < pos[1] + pUnit->boxSize.y; ++y)
@@ -475,12 +410,17 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team)
         pUnits->InsertTail(pUnit);
     }
 
-    // Put in right chun
+    // Put in right chunk
     auto pChunk = getChunkAt(pUnit->position);
     if (pChunk)
     {
         pUnit->pChunk = pChunk;
         pChunk->pUnits->InsertTail(pUnit);
+    }
+
+    if (bSendEvent)
+    {
+        pUnit->onSpawn();
     }
 
     return pUnit;

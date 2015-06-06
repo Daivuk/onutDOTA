@@ -1,5 +1,10 @@
 #include "Globals.h"
 
+#include "Spawner.h"
+#include "Nexus.h"
+#include "Waypoint.h"
+#include "Minion.h"
+
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
 
@@ -8,48 +13,174 @@ Globals::SGame Globals::myGame;
 onut::UIControl *Globals::pUIHeader = nullptr;
 onut::RTS *Globals::pRTS = nullptr;
 Map *Globals::pMap = nullptr;
-std::unordered_map<int, std::vector<sAnimRes>> Globals::baltAnimsResources;
 uint32_t Globals::rts_frame = 0;
+
+std::unordered_map<eUnitType, sUnitType> Globals::unitTypes;
+std::unordered_map<std::string, eUnitType> Globals::unitTypesByName;
 
 void Globals::init()
 {
+    // Define unit types
+    {
+        sUnitType u;
+        u.typeName = "Spawner";
+        u.screenName = "Spawner";
+        u.category = eUnitCategory::BUILDLING;
+        u.sizeType = eUnitSizeType::BOX;
+        u.boxSize = {3, 3};
+        u.yOffset = 3;
+        u.health = 500;
+        u.armor = 5;
+        u.visionRange = 10;
+        u.alertRange = 8;
+        u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"buildings/buildings.png", {-40.f, -40.f}, {200.f, 200.f}, false, 0, {{240.f, 0.f, 200.f, 200.f}}};
+        u.anims[BALT_UP | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_LEFT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_DOWN | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.pFactory = new UnitFactory<Spawner>();
+        unitTypes[eUnitType::SPAWNER] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Nexus";
+        u.screenName = "Nexus";
+        u.category = eUnitCategory::BUILDLING;
+        u.sizeType = eUnitSizeType::BOX;
+        u.boxSize = {4, 4};
+        u.yOffset = 4;
+        u.health = 2000;
+        u.armor = 5;
+        u.visionRange = 10;
+        u.alertRange = 8;
+        u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"buildings/buildings.png", {-40.f, -40.f}, {240.f, 240.f}, false, 0, {{0, 0, 240.f, 240.f}}};
+        u.anims[BALT_UP | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_LEFT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_DOWN | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.pFactory = new UnitFactory<Nexus>();
+        unitTypes[eUnitType::NEXUS] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "MinionWaypoint";
+        u.screenName = "";
+        u.category = eUnitCategory::NONE;
+        u.sizeType = eUnitSizeType::BOX;
+        u.boxSize = {2, 2};
+        u.pFactory = new UnitFactory<Waypoint>();
+        unitTypes[eUnitType::WAYPOINT] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Minion";
+        u.screenName = "Minion";
+        u.category = eUnitCategory::GROUND;
+        u.sizeType = eUnitSizeType::RADIUS;
+        u.radius = .25f;
+        u.health = 100;
+        u.visionRange = 5;
+        u.alertRange = 4;
+        u.moveSpeed = 2;
+        u.attackType = eUnitAttackType::PROJECTILE;
+        u.projectileUnitType = eUnitType::NONE;
+        u.damage = 5;
+        u.attackRange = 4;
+        u.attackCoolDown = 1;
+
+        static const int BALT_IDLE_FPS = 8;
+        static const int BALT_WALK_FPS = 8;
+        static const int BALT_ATTACK_FPS = 24;
+        static const float MINION_SCALE = 2.f;
+
+        u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_IDLE_FPS, {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+        u.anims[BALT_DOWN | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_WALK_FPS, {2, 4, 3, 5}};
+        u.anims[BALT_DOWN | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_ATTACK_FPS, {6, 2, 7}};
+
+        u.anims[BALT_UP | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_IDLE_FPS, {8}};
+        u.anims[BALT_UP | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_WALK_FPS, {10, 13, 11, 12}};
+        u.anims[BALT_UP | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_ATTACK_FPS, {14, 10, 15}};
+
+        u.anims[BALT_LEFT | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_IDLE_FPS, {16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16}};
+        u.anims[BALT_LEFT | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_WALK_FPS, {18, 16, 19, 16}};
+        u.anims[BALT_LEFT | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, false, BALT_ATTACK_FPS, {20, 19, 21}};
+
+        u.anims[BALT_RIGHT | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, true, BALT_IDLE_FPS, {16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16}};
+        u.anims[BALT_RIGHT | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, true, BALT_WALK_FPS, {18, 16, 19, 16}};
+        u.anims[BALT_RIGHT | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, MINION_SCALE, true, BALT_ATTACK_FPS, {20, 19, 21}};
+
+        u.pFactory = new UnitFactory<Minion>();
+        unitTypes[eUnitType::MINION] = u;
+    }
+
+    for (auto &unitType : unitTypes)
+    {
+        unitTypesByName[unitType.second.typeName] = unitType.first;
+    }
+
     auto pHeader = new onut::UIControl("../../assets/ui/header.json");
     pUIHeader = pHeader->getChild("header");
     pUIHeader->retain();
     pHeader->release();
     hookButtonSounds(pUIHeader);
+}
 
-    // Build animations for characters
-    const float characterScale = 2.f / 40.f;
-    for (auto &kv : baltAnimsDefs)
+UnitAnimDef::UnitAnimDef(const std::string &texture, const POINT &spriteSize, const Vector2 &offset, float scale, bool hFlip, int in_fps, std::vector<int> in_frames)
+    : frameCount(static_cast<int>(in_frames.size()))
+    , fps(in_fps)
+{
+    pTexture = OGetTexture(texture.c_str());
+    assert(pTexture);
+
+    int colCount = pTexture->getSize().x / spriteSize.x;
+    frames = new sAnimFrame[frameCount];
+
+    int frameIndex = 0;
+    float texSizeY = pTexture->getSizef().y;
+    for (auto frameId : in_frames)
     {
-        for (int team = 0; team < 2; ++team)
+        auto &frame = frames[frameIndex];
+        frame.offset = offset * scale / 40.f;
+        frame.size = Vector2{(float)spriteSize.x * scale, (float)spriteSize.y * scale} / 40.f;
+        frame.UVs.x = ((float)(frameId % colCount)) / (float)colCount;
+        frame.UVs.y = ((float)(frameId / colCount) * (float)spriteSize.y) / texSizeY;
+        frame.UVs.z = ((float)(frameId % colCount + 1)) / (float)colCount;
+        frame.UVs.w = ((float)(frameId / colCount + 1) * (float)spriteSize.y) / texSizeY;
+        if (hFlip)
         {
-            sAnimRes animRes;
-            animRes.pAnimDef = &kv.second;
-            animRes.frames.reserve(kv.second.frames.size());
-            for (auto frameId : kv.second.frames)
-            {
-                sAnimFrame frame;
-                frame.offset = {-8.f * characterScale, -18.f * characterScale};
-                frame.size = {16.f * characterScale, 24.f * characterScale};
-                frame.UVs.x = ((float)(frameId % 8)) / 8.f;
-                frame.UVs.y = ((float)(frameId / 8) * 24.f) / 256.f;
-                frame.UVs.z = ((float)(frameId % 8 + 1)) / 8.f;
-                frame.UVs.w = ((float)(frameId / 8 + 1) * 24.f) / 256.f;
-                if (animRes.pAnimDef->hFlip)
-                {
-                    std::swap(frame.UVs.x, frame.UVs.z);
-                }
-                if (team)
-                {
-                    frame.UVs.y += .5f;
-                    frame.UVs.w += .5f;
-                }
-                animRes.frames.push_back(frame);
-            }
-            baltAnimsResources[kv.first].push_back(animRes);
+            std::swap(frame.UVs.x, frame.UVs.z);
         }
+        ++frameIndex;
+    }
+}
+
+UnitAnimDef::UnitAnimDef(const std::string &texture, const Vector2 &offset, const Vector2 &size, bool hFlip, int in_fps, std::vector<Vector4> in_frames)
+    : frameCount(static_cast<int>(in_frames.size()))
+    , fps(in_fps)
+{
+    pTexture = OGetTexture(texture.c_str());
+    assert(pTexture);
+
+    frames = new sAnimFrame[frameCount];
+
+    int frameIndex = 0;
+    float texSizeX = pTexture->getSizef().x;
+    float texSizeY = pTexture->getSizef().y;
+    for (auto &frameUVs : in_frames)
+    {
+        auto &frame = frames[frameIndex];
+        frame.offset = offset / 40.f;
+        frame.size = size / 40.f;
+        frame.UVs = frameUVs;
+        frame.UVs.x /= texSizeX;
+        frame.UVs.y /= texSizeY;
+        frame.UVs.z /= texSizeX;
+        frame.UVs.w /= texSizeY;
+        frame.UVs.z += frame.UVs.x;
+        frame.UVs.w += frame.UVs.y;
+        if (hFlip)
+        {
+            std::swap(frame.UVs.x, frame.UVs.z);
+        }
+        ++frameIndex;
     }
 }
 
