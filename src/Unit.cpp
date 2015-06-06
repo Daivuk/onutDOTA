@@ -82,7 +82,6 @@ void Unit::rts_update()
                 anim.frame = 0;
                 anim.progress = 0.f;
                 animDirty = true;
-                attackCooldown = pType->attackCoolDown;
             }
             else
             {
@@ -126,6 +125,37 @@ void Unit::rts_update()
 
 void Unit::rts_updateState()
 {
+    if (pType->category == eUnitCategory::BUILDLING)
+    {
+        if (animState != BALT_ATTACK && pType->attackType != eUnitAttackType::NONE)
+        {
+            if (pTarget)
+            {
+                if (attackCooldown <= 0)
+                {
+                    if (targetInAttackRange())
+                    {
+                        animState = BALT_ATTACK;
+                        anim.frame = 0;
+                        anim.progress = 0.f;
+                        animDirty = true;
+                        attackDelay = pType->attackDelay;
+                        attackCooldown = pType->attackCoolDown;
+                    }
+                    else
+                    {
+                        pTarget = nullptr;
+                    }
+                }
+            }
+            else
+            {
+                pTarget = aquireTarget();
+            }
+        }
+        return;
+    }
+
     switch (state)
     {
         case eUnitState::ATTACK_POSITION:
@@ -133,46 +163,54 @@ void Unit::rts_updateState()
             if (animState != BALT_ATTACK)
             {
                 // If we are not currently attacking, update target state
-                if (pTarget)
+                if (pType->attackType != eUnitAttackType::NONE)
                 {
-                    if (targetEscaped())
+                    if (pTarget)
                     {
-                        pTarget = nullptr;
-                        targetPos = prevTargetPos;
-                        calculatePathToPos(targetPos);
-                    }
-                    else if (attackCooldown <= 0)
-                    {
-                        if (targetInAttackRange())
+                        if (targetEscaped())
                         {
-                            animState = BALT_ATTACK;
-                            anim.frame = 0;
-                            anim.progress = 0.f;
-                            animDirty = true;
-                            attackDelay = pType->attackDelay;
+                            pTarget = nullptr;
+                            targetPos = prevTargetPos;
+                            calculatePathToPos(targetPos);
                         }
-                        else
+                        else if (attackCooldown <= 0)
                         {
-                            // Recalculate path when he goes out of our targetpos attack range 
-                            if (Vector2::DistanceSquared(pTarget->position, missionTargetPos) >= pType->attackRange * .5f)
+                            if (targetInAttackRange())
                             {
-                                calculatePathToPos(pTarget->position);
+                                animState = BALT_ATTACK;
+                                anim.frame = 0;
+                                anim.progress = 0.f;
+                                animDirty = true;
+                                attackDelay = pType->attackDelay;
+                                attackCooldown = pType->attackCoolDown;
                             }
-                            doMovement();
+                            else
+                            {
+                                // Recalculate path when he goes out of our targetpos attack range 
+                                if (Vector2::DistanceSquared(pTarget->position, missionTargetPos) >= pType->attackRange * .5f)
+                                {
+                                    calculatePathToPos(pTarget->position);
+                                }
+                                doMovement();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        doMovement();
+                        if (!pTarget)
+                        {
+                            pTarget = aquireTarget();
+                            if (pTarget)
+                            {
+                                prevTargetPos = missionTargetPos;
+                            }
                         }
                     }
                 }
                 else
                 {
                     doMovement();
-                    if (!pTarget)
-                    {
-                        pTarget = aquireTarget();
-                        if (pTarget)
-                        {
-                            prevTargetPos = missionTargetPos;
-                        }
-                    }
                 }
             }
             break;
@@ -430,11 +468,23 @@ void Unit::renderDebug()
         OPB->draw(path[i], {1, 1, 0, 1});
     }
     OPB->end();
+
     if (pTarget)
     {
         OPB->begin(onut::ePrimitiveType::LINES);
         OPB->draw(position, {1, 0, 0, 1});
         OPB->draw(pTarget->position, {1, 0, 0, 1});
+        OPB->end();
+    }
+
+    if (pType->category == eUnitCategory::BUILDLING)
+    {
+        OPB->begin(onut::ePrimitiveType::LINE_STRIP);
+        OPB->draw(position, {0, 1, 1, 1});
+        OPB->draw(position + Vector2(0, (float)boxSize.y), {0, 1, 1, 1});
+        OPB->draw(position + Vector2((float)boxSize.x, (float)boxSize.y), {0, 1, 1, 1});
+        OPB->draw(position + Vector2((float)boxSize.x, 0), {0, 1, 1, 1});
+        OPB->draw(position, {0, 1, 1, 1});
         OPB->end();
     }
 }

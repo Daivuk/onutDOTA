@@ -5,8 +5,8 @@
 #include "Spawner.h"
 
 #define WAVE_INTERVAL 3600
-#define WAVE_MINION_INTERVAL 90
-#define WAVE_COUNT 5
+#define WAVE_MINION_INTERVAL 45
+#define WAVE_COUNT 10
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -77,6 +77,12 @@ void Game::update()
     Globals::pMap->update();
 
     auto updateFrames = Globals::pRTS->update();
+#if _DEBUG
+    if (OInput->isStateDown(DIK_F))
+    {
+        updateFrames *= 2;
+    }
+#endif
     while (updateFrames--)
     {
         rts_update();

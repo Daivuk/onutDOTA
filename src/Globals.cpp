@@ -5,6 +5,7 @@
 #include "Waypoint.h"
 #include "Minion.h"
 #include "Arrow.h"
+#include "Tower.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -37,9 +38,37 @@ void Globals::init()
         u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"buildings/buildings.png", {-40.f, -40.f}, {200.f, 200.f}, false, 0, {{240.f, 0.f, 200.f, 200.f}}};
         u.anims[BALT_UP | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
         u.anims[BALT_LEFT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
-        u.anims[BALT_DOWN | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_RIGHT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
         u.pFactory = new UnitFactory<Spawner>();
         unitTypes[eUnitType::SPAWNER] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Tower";
+        u.screenName = "Tower";
+        u.category = eUnitCategory::BUILDLING;
+        u.sizeType = eUnitSizeType::BOX;
+        u.boxSize = {2, 2};
+        u.yOffset = 2;
+        u.health = 300;
+        u.armor = 3;
+        u.visionRange = 10;
+        u.alertRange = 8;
+        u.attackRange = 8;
+        u.attackType = eUnitAttackType::PROJECTILE;
+        u.projectileUnitType = eUnitType::ARROW;
+        u.attackCoolDown = .75f;
+        u.attackDelay = 0.01f;
+        u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"buildings/buildings.png", {0, -80.f}, {120.f, 200.f}, false, 120, {{480.f, 0.f, 120.f, 200.f}}};
+        u.anims[BALT_UP | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_LEFT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_RIGHT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_DOWN | BALT_ATTACK] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_UP | BALT_ATTACK] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_LEFT | BALT_ATTACK] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_RIGHT | BALT_ATTACK] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.pFactory = new UnitFactory<Tower>();
+        unitTypes[eUnitType::TOWER] = u;
     }
     {
         sUnitType u;
@@ -56,7 +85,7 @@ void Globals::init()
         u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"buildings/buildings.png", {-40.f, -40.f}, {240.f, 240.f}, false, 0, {{0, 0, 240.f, 240.f}}};
         u.anims[BALT_UP | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
         u.anims[BALT_LEFT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
-        u.anims[BALT_DOWN | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
+        u.anims[BALT_RIGHT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
         u.pFactory = new UnitFactory<Nexus>();
         unitTypes[eUnitType::NEXUS] = u;
     }
@@ -83,7 +112,7 @@ void Globals::init()
         u.moveSpeed = 2;
         u.attackType = eUnitAttackType::PROJECTILE;
         u.projectileUnitType = eUnitType::ARROW;
-        u.attackCoolDown = 1;
+        u.attackCoolDown = 1.125f;
         u.attackDelay = .08f;
         
         static const int BALT_IDLE_FPS = 8;

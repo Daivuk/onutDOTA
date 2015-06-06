@@ -7,6 +7,7 @@
 #include "Waypoint.h"
 #include "Minion.h"
 #include "Arrow.h"
+#include "Tower.h"
 
 sMapChunk::sMapChunk()
 {
@@ -29,7 +30,8 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Waypoint));
     biggest = std::max<>(biggest, sizeof(Minion));
     biggest = std::max<>(biggest, sizeof(Arrow));
-    
+    biggest = std::max<>(biggest, sizeof(Tower));
+
     pUnitPool = new OPool(biggest, MAX_UNITS);
     pUnits = new TList<Unit>(offsetOf(&Unit::linkMain));
 
@@ -420,9 +422,9 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team, bool bSe
     if (pUnit->pType->category == eUnitCategory::BUILDLING && pUnit->pType->sizeType == eUnitSizeType::BOX)
     {
         int pos[2] = {(int)round(pUnit->position.x), (int)round(pUnit->position.y)};
-        for (auto y = pos[1]; y < pos[1] + pUnit->boxSize.y; ++y)
+        for (auto y = pos[1]; y < pos[1] + pUnit->pType->boxSize.y; ++y)
         {
-            for (auto x = pos[0]; x < pos[0] + pUnit->boxSize.x; ++x)
+            for (auto x = pos[0]; x < pos[0] + pUnit->pType->boxSize.x; ++x)
             {
                 collisions[y * m_tiledMap.getWidth() + x] = true;
             }

@@ -14,7 +14,8 @@ enum class eUnitType : uint8_t
     NEXUS,
     WAYPOINT,
     MINION,
-    ARROW
+    ARROW,
+    TOWER
 };
 
 enum class eUnitSizeType : uint8_t
