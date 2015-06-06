@@ -4,6 +4,8 @@
 
 static const float UNIT_TARGET_TOUCH_RADIUS = 1.5f;
 static const float UNIT_STEER_RANGE = 0.75f;
+static const float UNIT_TARGET_ESCAPE_RANGE = 15.f;
+static const float UNIT_TARGET_ESCAPE_RANGE_SQR = UNIT_TARGET_ESCAPE_RANGE * UNIT_TARGET_ESCAPE_RANGE;
 
 Unit::Unit()
     : pChunk(nullptr)
@@ -25,6 +27,29 @@ void Unit::render()
     OSB->drawRectWithUVs(anim.pAnimDef->pTexture,
                          {position.x + frame.offset.x, position.y + frame.offset.y, frame.size.x, frame.size.y},
                          UV);
+
+    if (health < pType->health)
+    {
+        OSB->drawRect(nullptr,
+            {position.x + frame.offset.x - 1.f / 40.f, position.y + frame.offset.y - 4.f / 40.f, frame.size.x + 2.f / 40.f, 4.f / 40.f},
+            {0, 0, 0, 1});
+        float percent = ((float)health / (float)pType->health);
+        static const Color colorFULL{0, 1, 0, 1};
+        static const Color colorMid{1, 1, 0, 1};
+        static const Color colorEmpty{1, 0, 0, 1};
+        Color color = colorFULL;
+        if (percent > .5f)
+        {
+            color = Color::Lerp(colorMid, colorFULL, percent * 2.f - 1.f);
+        }
+        else 
+        {
+            color = Color::Lerp(colorEmpty, colorMid, percent * 2.f);
+        }
+        OSB->drawRect(nullptr,
+            {position.x + frame.offset.x, position.y + frame.offset.y - 3.f / 40.f, frame.size.x * percent, 2.f / 40.f},
+            color);
+    }
 }
 
 void Unit::rts_update()
@@ -35,8 +60,16 @@ void Unit::rts_update()
     {
         movingDirection = {0, 0};
 
-        // Do movement
-        rts_updateState();
+        // Attack cooldown
+        if (attackCooldown > 0) attackCooldown -= ODT;
+        if (attackDelay > 0)
+        {
+            attackDelay -= ODT;
+            if (attackDelay <= 0)
+            {
+                performAttack();
+            }
+        }
 
         // Update animation
         anim.progress += ODT * (float)anim.pAnimDef->fps;
@@ -49,12 +82,16 @@ void Unit::rts_update()
                 anim.frame = 0;
                 anim.progress = 0.f;
                 animDirty = true;
+                attackCooldown = pType->attackCoolDown;
             }
             else
             {
                 anim.frame = (int)anim.progress % anim.pAnimDef->frameCount;
             }
         }
+
+        // State update
+        rts_updateState();
 
         // Update animations based on direction and movement
         if (animState == BALT_IDLE)
@@ -93,7 +130,55 @@ void Unit::rts_updateState()
     {
         case eUnitState::ATTACK_POSITION:
         {
-            doMovement();
+            if (animState != BALT_ATTACK)
+            {
+                // If we are not currently attacking, update target state
+                if (pTarget)
+                {
+                    if (targetEscaped())
+                    {
+                        pTarget = nullptr;
+                        targetPos = prevTargetPos;
+                        calculatePathToPos(targetPos);
+                    }
+                    else if (attackCooldown <= 0)
+                    {
+                        if (targetInAttackRange())
+                        {
+                            animState = BALT_ATTACK;
+                            anim.frame = 0;
+                            anim.progress = 0.f;
+                            animDirty = true;
+                            attackDelay = pType->attackDelay;
+                        }
+                        else
+                        {
+                            // Recalculate path when he goes out of our targetpos attack range 
+                            if (Vector2::DistanceSquared(pTarget->position, missionTargetPos) >= pType->attackRange * .5f)
+                            {
+                                calculatePathToPos(pTarget->position);
+                            }
+                            doMovement();
+                        }
+                    }
+                }
+                else
+                {
+                    doMovement();
+                    if (!pTarget)
+                    {
+                        pTarget = aquireTarget();
+                        if (pTarget)
+                        {
+                            prevTargetPos = missionTargetPos;
+                        }
+                    }
+                }
+            }
+            break;
+        }
+        case eUnitState::IDLE:
+        {
             break;
         }
         default: break;
@@ -122,6 +207,7 @@ void Unit::attackTo(const Vector2 &attackPos)
 
 void Unit::calculatePathToPos(const Vector2 &in_targetPos)
 {
+    missionTargetPos = in_targetPos;
     float totalCost = 0;
     int result = Globals::pMap->findPath(position, in_targetPos, &path, &totalCost);
     path.push_back(in_targetPos);
@@ -134,7 +220,10 @@ void Unit::progressPath()
     if (path.empty())
     {
         goIdle();
-        onReachDestination();
+        if (!pTarget)
+        {
+            onReachDestination();
+        }
         return;
     }
     targetPos = path.front();
@@ -237,6 +326,98 @@ void Unit::doMovement()
     }
 }
 
+bool Unit::targetEscaped()
+{
+    if (!pTarget) return true;
+    if (Vector2::DistanceSquared(position, pTarget->position) >= UNIT_TARGET_ESCAPE_RANGE_SQR)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool Unit::targetInAttackRange()
+{
+    if (!pTarget) return false;
+    if (Vector2::DistanceSquared(position, pTarget->position) <= pType->attackRange * pType->attackRange)
+    {
+        return true;
+    }
+    return false;
+}
+
+Unit* Unit::aquireTarget()
+{
+    float radius = pType->radius;
+
+    // Steer against others
+    int chunkFromX = (int)(position.x - pType->alertRange) / CHUNK_SIZE;
+    int chunkFromY = (int)(position.y - pType->alertRange) / CHUNK_SIZE;
+    int chunkToX = (int)(position.x + pType->alertRange) / CHUNK_SIZE;
+    int chunkToY = (int)(position.y + pType->alertRange) / CHUNK_SIZE;
+
+    Unit *pClosest = nullptr;
+    float closestDis = pType->alertRange * pType->alertRange;
+
+    for (int chunkY = chunkFromY; chunkY <= chunkToY; ++chunkY)
+    {
+        for (int chunkX = chunkFromX; chunkX <= chunkToX; ++chunkX)
+        {
+            auto pChunk = Globals::pMap->pChunks + (chunkY * Globals::pMap->chunkXCount + chunkX);
+            for (auto pUnit = pChunk->pUnits->Head(); pUnit; pUnit = pChunk->pUnits->Next(pUnit))
+            {
+                if (pUnit == this) continue;
+                if (pUnit->team == team || pUnit->team == TEAM_NONE) continue;
+                if (pUnit->pType->category != eUnitCategory::AIR &&
+                    pUnit->pType->category != eUnitCategory::GROUND &&
+                    pUnit->pType->category != eUnitCategory::BUILDLING) continue;
+                float dis = Vector2::DistanceSquared(position, pUnit->position);
+                if (dis < closestDis)
+                {
+                    closestDis = dis;
+                    pClosest = pUnit;
+                }
+            }
+        }
+    }
+
+    return pClosest;
+}
+
+void Unit::performAttack()
+{
+    if (!pTarget) return;
+    if (pType->attackType == eUnitAttackType::PROJECTILE)
+    {
+        auto pProjectile = Globals::pMap->spawn(position, pType->projectileUnitType, team);
+        if (pProjectile)
+        {
+            pProjectile->pTarget = pTarget;
+            pProjectile->pOwner = this;
+            pProjectile->onSpawn();
+        }
+    }
+}
+
+void Unit::markForDeletion()
+{
+    bDeletionRequested = true;
+}
+
+bool Unit::damage(float damage)
+{
+    float finalDamage = onut::randf(damage - damage * .25f, damage + damage * .25f);
+    int dmgi = (int)roundf(finalDamage);
+    dmgi -= pType->armor;
+    dmgi = std::max<>(1, dmgi);
+    health = std::max<>(0, health - dmgi);
+    if (health == 0)
+    {
+        markForDeletion();
+        return true;
+    }
+    return false;
+}
 
 #if _DEBUG
 void Unit::renderDebug()
@@ -249,5 +430,12 @@ void Unit::renderDebug()
         OPB->draw(path[i], {1, 1, 0, 1});
     }
     OPB->end();
+    if (pTarget)
+    {
+        OPB->begin(onut::ePrimitiveType::LINES);
+        OPB->draw(position, {1, 0, 0, 1});
+        OPB->draw(pTarget->position, {1, 0, 0, 1});
+        OPB->end();
+    }
 }
 #endif

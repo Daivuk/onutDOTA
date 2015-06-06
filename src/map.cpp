@@ -6,6 +6,7 @@
 #include "Nexus.h"
 #include "Waypoint.h"
 #include "Minion.h"
+#include "Arrow.h"
 
 sMapChunk::sMapChunk()
 {
@@ -27,6 +28,7 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Nexus));
     biggest = std::max<>(biggest, sizeof(Waypoint));
     biggest = std::max<>(biggest, sizeof(Minion));
+    biggest = std::max<>(biggest, sizeof(Arrow));
     
     pUnitPool = new OPool(biggest, MAX_UNITS);
     pUnits = new TList<Unit>(offsetOf(&Unit::linkMain));
@@ -217,6 +219,7 @@ void Map::render()
     egModelIdentity();
     egModelMult(&transform._11);
 
+//#if _DEBUG
 #if 0
     // Paths from spawners to spawners
     for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
@@ -353,6 +356,34 @@ void Map::rts_update()
         }
     }
 
+    // Delete units that was marked for deletion
+    for (auto pUnit = pUnits->Head(); pUnit;)
+    {
+        if (pUnit->bDeletionRequested)
+        {
+            pUnit->onDestroyed();
+            for (auto pUnit2 = pUnits->Head(); pUnit2; pUnit2 = pUnits->Next(pUnit2))
+            {
+                if (pUnit2 == pUnit) continue;
+                if (pUnit2->pTarget == pUnit)
+                {
+                    pUnit2->pTarget = nullptr;
+                    pUnit2->onTargetDestroyed(pUnit);
+                }
+                if (pUnit2->pOwner == pUnit)
+                {
+                    pUnit2->pOwner = nullptr;
+                    pUnit2->onOnwerDestroyed(pUnit);
+                }
+            }
+            auto pToDelete = pUnit;
+            pUnit = pUnits->Next(pUnit);
+            pUnitPool->dealloc(pToDelete);
+            continue;
+        }
+        pUnit = pUnits->Next(pUnit);
+    }
+
     // Reorder units based on the y position
     if (pUnits->Head())
     {
@@ -382,6 +413,9 @@ Unit *Map::spawn(const Vector2 &position, eUnitType unitType, int team, bool bSe
     pUnit->position = position;
     pUnit->type = unitType;
     pUnit->team = team;
+    pUnit->health = pUnit->pType->health;
+    pUnit->armor = pUnit->pType->armor;
+    pUnit->mana = pUnit->pType->mana;
 
     if (pUnit->pType->category == eUnitCategory::BUILDLING && pUnit->pType->sizeType == eUnitSizeType::BOX)
     {

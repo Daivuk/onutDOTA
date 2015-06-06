@@ -4,6 +4,7 @@
 #include "Nexus.h"
 #include "Waypoint.h"
 #include "Minion.h"
+#include "Arrow.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -62,7 +63,6 @@ void Globals::init()
     {
         sUnitType u;
         u.typeName = "MinionWaypoint";
-        u.screenName = "";
         u.category = eUnitCategory::NONE;
         u.sizeType = eUnitSizeType::BOX;
         u.boxSize = {2, 2};
@@ -76,16 +76,16 @@ void Globals::init()
         u.category = eUnitCategory::GROUND;
         u.sizeType = eUnitSizeType::RADIUS;
         u.radius = .25f;
-        u.health = 100;
-        u.visionRange = 5;
-        u.alertRange = 4;
+        u.health = 40;
+        u.visionRange = 7;
+        u.alertRange = 6;
+        u.attackRange = 5;
         u.moveSpeed = 2;
         u.attackType = eUnitAttackType::PROJECTILE;
-        u.projectileUnitType = eUnitType::NONE;
-        u.damage = 5;
-        u.attackRange = 4;
+        u.projectileUnitType = eUnitType::ARROW;
         u.attackCoolDown = 1;
-
+        u.attackDelay = .08f;
+        
         static const int BALT_IDLE_FPS = 8;
         static const int BALT_WALK_FPS = 8;
         static const int BALT_ATTACK_FPS = 24;
@@ -109,6 +109,15 @@ void Globals::init()
 
         u.pFactory = new UnitFactory<Minion>();
         unitTypes[eUnitType::MINION] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Arrow";
+        u.category = eUnitCategory::PROJECTILE;
+        u.pFactory = new UnitFactory<Arrow>();
+        u.pTexture = OGetTexture("minions/arrow.png");
+        u.damage = 5.f;
+        unitTypes[eUnitType::ARROW] = u;
     }
 
     for (auto &unitType : unitTypes)

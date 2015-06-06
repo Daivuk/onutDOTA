@@ -88,6 +88,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\Arrow.cpp" />
     <ClCompile Include="..\..\src\commands.cpp" />
     <ClCompile Include="..\..\src\Credits.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
@@ -107,6 +108,7 @@
     <ClCompile Include="..\..\src\Waypoint.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\Arrow.h" />
     <ClInclude Include="..\..\src\commands.h" />
     <ClInclude Include="..\..\src\Credits.h" />
     <ClInclude Include="..\..\src\Game.h" />
