@@ -20,6 +20,9 @@ uint32_t Globals::rts_frame = 0;
 std::unordered_map<eUnitType, sUnitType> Globals::unitTypes;
 std::unordered_map<std::string, eUnitType> Globals::unitTypesByName;
 
+OSound *Globals::pArrow_spawnSound = nullptr;
+OSound *Globals::pArrow_hit = nullptr;
+
 void Globals::init()
 {
     // Define unit types
@@ -148,6 +151,12 @@ void Globals::init()
         u.damage = 5.f;
         unitTypes[eUnitType::ARROW] = u;
     }
+
+    // Sounds
+    pArrow_spawnSound = OGetSound("arrow.wav");
+    pArrow_spawnSound->setMaxInstance(4);
+    pArrow_hit = OGetSound("arrowHit.wav");
+    pArrow_hit->setMaxInstance(2);
 
     for (auto &unitType : unitTypes)
     {

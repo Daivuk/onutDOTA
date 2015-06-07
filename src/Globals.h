@@ -46,4 +46,7 @@ public:
 
     static std::unordered_map<eUnitType, sUnitType> unitTypes;
     static std::unordered_map<std::string, eUnitType> unitTypesByName;
+
+    static OSound *pArrow_spawnSound;
+    static OSound *pArrow_hit;
 };

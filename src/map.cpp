@@ -537,3 +537,32 @@ bool Map::passable(int x, int y)
     int mapWidth = m_tiledMap.getWidth();
     return !collisions[y * mapWidth + x];
 }
+
+void Map::playSound(const Vector2& position, OSound *pSound)
+{
+    // Define the visible rectangle
+    Rect rect;
+    rect.x = (m_cameraPos.x * 40 - OScreenWf * .5f) / 40.f;
+    rect.y = (m_cameraPos.y * 40 - OScreenHf * .5f) / 40.f;
+    rect.z = (m_cameraPos.x * 40 + OScreenWf * .5f) / 40.f;
+    rect.w = (m_cameraPos.y * 40 + OScreenHf * .5f) / 40.f;
+    rect.z -= rect.x;
+    rect.w -= rect.y;
+
+    float balance = position.x - m_cameraPos.x;
+    balance /= (OScreenWf / 40.f);
+
+    if (rect.Contains(position))
+    {
+        pSound->play(1, balance);
+    }
+    else
+    {
+        float dis = rect.Distance(position);
+        dis = 1 - dis / 20;
+        if (dis > 0)
+        {
+            pSound->play(dis, balance);
+        }
+    }
+}

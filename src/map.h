@@ -24,6 +24,8 @@ public:
     void update();
     void rts_update();
 
+    void playSound(const Vector2& position, OSound *pSound);
+
     Unit *spawn(const Vector2 &position, eUnitType unitType, int team, bool bSendEvent = false);
     Unit *getUnitByMapId(uint32_t mapId);
     template<typename Tunit>

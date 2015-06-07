@@ -1,6 +1,12 @@
 #include "Arrow.h"
+#include "Globals.h"
 
 static const float ARROW_SPEED = 13.f;
+
+void Arrow::onSpawn()
+{
+    Globals::pMap->playSound(position, Globals::pArrow_spawnSound);
+}
 
 void Arrow::render()
 {
@@ -23,6 +29,8 @@ void Arrow::rts_update()
         distLeft -= ODT * ARROW_SPEED;
         if (distLeft <= pTarget->pType->radius)
         {
+            Globals::pMap->playSound(position, Globals::pArrow_hit);
+
             // Damage target
             if (pTarget->damage(pType->damage))
             {
