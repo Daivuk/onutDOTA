@@ -1,5 +1,6 @@
 #include "Minion.h"
 #include "Waypoint.h"
+#include "Globals.h"
 
 Minion::Minion()
 {
@@ -25,4 +26,9 @@ void Minion::onReachDestination()
             attackTo(pWaypoint->getCenter());
         }
     }
+}
+
+void Minion::onDestroyed()
+{
+    Globals::pMap->spawnFX(eFX::FX_ANIM_BLOOD_C, position);
 }

@@ -29,11 +29,24 @@ void Arrow::rts_update()
         distLeft -= ODT * ARROW_SPEED;
         if (distLeft <= pTarget->pType->radius)
         {
+            // Play impact sound
             Globals::pMap->playSound(position, Globals::pArrow_hit);
+
+            // Show some blood
+            if (pTarget->pType->category == eUnitCategory::GROUND)
+            {
+                Globals::pMap->spawnFX(eFX::FX_ANIM_BLOOD_D, position);
+                Globals::pMap->spawnDecal(eFX((int)eFX::FX_DECAL_BLOOD_A + onut::randi(3)), position, 0, .75f);
+            }
 
             // Damage target
             if (pTarget->damage(pType->damage))
             {
+                if (pTarget->pType->category == eUnitCategory::GROUND)
+                {
+                    Globals::pMap->spawnDecal(eFX((int)eFX::FX_DECAL_BLOOD_A + onut::randi(1)), position, 0, .75f, 1.5f);
+                }
+
                 // Yay we killed it
                 if (pOwner)
                 {

@@ -34,6 +34,9 @@ Map::Map(int seed)
 
     pUnitPool = new OPool(biggest, MAX_UNITS);
     pUnits = new TList<Unit>(offsetOf(&Unit::linkMain));
+    pFXPool = new OPool(sizeof(FX), 1024);
+    pDecalPool = new OPool(sizeof(Decal), 1024);
+    pDecals = new TList<Decal>(offsetOf(&Decal::linkMain));
 
     chunkXCount = (m_tiledMap.getWidth() / CHUNK_SIZE + 1);
     chunkYCount = (m_tiledMap.getHeight() / CHUNK_SIZE + 1);
@@ -179,6 +182,9 @@ Map::Map(int seed)
 
 Map::~Map()
 {
+    if (pFXPool) delete pFXPool;
+    if (pDecalPool) delete pDecalPool;
+    if (pDecals) delete pDecals;
     if (pUnits) delete pUnits;
     if (pPather) delete pPather;
     if (pUnitPool) delete pUnitPool;
@@ -286,9 +292,21 @@ void Map::render()
     OSB->begin();
     egStatePush();
     egFilter(EG_FILTER_NEAREST);
+    for (auto pDecal = pDecals->Head(); pDecal; pDecal = pDecals->Next(pDecal))
+    {
+        pDecal->render();
+    }
     for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
         pUnit->render();
+    }
+    for (decltype(pFXPool->size()) i = 0; i < pFXPool->size(); ++i)
+    {
+        auto pFX = pFXPool->at<FX>(i);
+        if (pFXPool->isUsed(pFX))
+        {
+            pFX->render();
+        }
     }
     egStatePop();
     OSB->end();
@@ -344,6 +362,30 @@ void Map::update()
 
 void Map::rts_update()
 {
+    // Update FX
+    for (auto pDecal = pDecals->Head(); pDecal; )
+    {
+        if (pDecal->rts_update())
+        {
+            auto pToDelete = pDecal;
+            pDecal = pDecals->Next(pDecal);
+            pDecalPool->dealloc(pToDelete);
+            continue;
+        }
+        pDecal = pDecals->Next(pDecal);
+    }
+    for (decltype(pFXPool->size()) i = 0; i < pFXPool->size(); ++i)
+    {
+        auto pFX = pFXPool->at<FX>(i);
+        if (pFXPool->isUsed(pFX))
+        {
+            if (pFX->rts_update())
+            {
+                pFXPool->dealloc(pFX);
+            }
+        }
+    }
+
     // Update units
     for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
@@ -565,4 +607,29 @@ void Map::playSound(const Vector2& position, OSound *pSound)
             pSound->play(dis, balance);
         }
     }
+}
+
+FX* Map::spawnFX(eFX fxAnim, const Vector2& in_position, float in_angle)
+{
+    return pFXPool->alloc<FX>(fxAnim, in_position, in_angle);
+}
+
+Decal* Map::spawnDecal(eFX fxDecal, const Vector2& in_position, float in_angle, float in_opacity, float in_scale)
+{
+    auto pDecal = pDecalPool->alloc<Decal>(fxDecal, in_position, in_angle, in_opacity, in_scale);
+    if (pDecal)
+    {
+        // Insert at the right place (We order in Y)
+        auto pOther = pDecals->Head();
+        for (; pOther; pOther = pDecals->Next(pOther))
+        {
+            if (pDecal->position.y < pOther->position.y)
+            {
+                pDecals->InsertBefore(pDecal, pOther);
+                return pDecal;
+            }
+        }
+        pDecals->InsertTail(pDecal);
+    }
+    return pDecal;
 }

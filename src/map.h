@@ -2,6 +2,7 @@
 #include "TiledMap.h"
 #include "Unit.h"
 #include "micropather.h"
+#include "FX.h"
 
 #define MAX_UNITS 2048
 #define CHUNK_SIZE 4
@@ -25,6 +26,8 @@ public:
     void rts_update();
 
     void playSound(const Vector2& position, OSound *pSound);
+    FX* spawnFX(eFX fxAnim, const Vector2& in_position, float in_angle = 0);
+    Decal* spawnDecal(eFX fxDecal, const Vector2& in_position, float in_angle = 0, float in_opacity = 1, float in_scale = 1);
 
     Unit *spawn(const Vector2 &position, eUnitType unitType, int team, bool bSendEvent = false);
     Unit *getUnitByMapId(uint32_t mapId);
@@ -68,9 +71,12 @@ public:
     Vector2 m_cameraPos;
     OPool *pUnitPool = nullptr;
     TList<Unit> *pUnits = nullptr;
+    TList<Decal> *pDecals = nullptr;
     bool *collisions = nullptr;
     micropather::MicroPather *pPather = nullptr;
     int entityLayerIndex = 0;
     int chunkXCount = 0;
     int chunkYCount = 0;
+    OPool *pFXPool = nullptr;
+    OPool *pDecalPool = nullptr;
 };

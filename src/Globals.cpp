@@ -1,4 +1,5 @@
 #include "Globals.h"
+#include "FX.h"
 
 #include "Spawner.h"
 #include "Nexus.h"
@@ -25,6 +26,9 @@ OSound *Globals::pArrow_hit = nullptr;
 
 void Globals::init()
 {
+    // FX
+    FX::init();
+
     // Define unit types
     {
         sUnitType u;
@@ -181,15 +185,16 @@ UnitAnimDef::UnitAnimDef(const std::string &texture, const POINT &spriteSize, co
     frames = new sAnimFrame[frameCount];
 
     int frameIndex = 0;
+    float texSizeX = pTexture->getSizef().x;
     float texSizeY = pTexture->getSizef().y;
     for (auto frameId : in_frames)
     {
         auto &frame = frames[frameIndex];
         frame.offset = offset * scale / 40.f;
         frame.size = Vector2{(float)spriteSize.x * scale, (float)spriteSize.y * scale} / 40.f;
-        frame.UVs.x = ((float)(frameId % colCount)) / (float)colCount;
+        frame.UVs.x = ((float)(frameId % colCount) * (float)spriteSize.x) / texSizeX;
         frame.UVs.y = ((float)(frameId / colCount) * (float)spriteSize.y) / texSizeY;
-        frame.UVs.z = ((float)(frameId % colCount + 1)) / (float)colCount;
+        frame.UVs.z = ((float)(frameId % colCount + 1) * (float)spriteSize.x) / texSizeX;
         frame.UVs.w = ((float)(frameId / colCount + 1) * (float)spriteSize.y) / texSizeY;
         if (hFlip)
         {
