@@ -3,7 +3,7 @@
 #include "UnitAnim.h"
 #include "List.h"
 
-#define DECAL_DURATION 30
+#define DECAL_DURATION 20
 
 enum eFX : uint8_t
 {

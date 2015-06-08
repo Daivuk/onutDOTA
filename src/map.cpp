@@ -8,6 +8,7 @@
 #include "Minion.h"
 #include "Arrow.h"
 #include "Tower.h"
+#include "Gibs.h"
 
 sMapChunk::sMapChunk()
 {
@@ -31,6 +32,7 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Minion));
     biggest = std::max<>(biggest, sizeof(Arrow));
     biggest = std::max<>(biggest, sizeof(Tower));
+    biggest = std::max<>(biggest, sizeof(Gibs));
 
     pUnitPool = new OPool(biggest, MAX_UNITS);
     pUnits = new TList<Unit>(offsetOf(&Unit::linkMain));

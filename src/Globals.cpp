@@ -7,6 +7,7 @@
 #include "Minion.h"
 #include "Arrow.h"
 #include "Tower.h"
+#include "Gibs.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -154,6 +155,54 @@ void Globals::init()
         u.pTexture = OGetTexture("minions/arrow.png");
         u.damage = 5.f;
         unitTypes[eUnitType::ARROW] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Gibs";
+        u.pFactory = new UnitFactory<Gibs>();
+        u.pTexture = OGetTexture("fx/gibs.png");
+        u.UVs = OUVS(u.pTexture, {0, 24, 10, 13});
+        unitTypes[eUnitType::GIBS_HEAD] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Gibs";
+        u.pFactory = new UnitFactory<Gibs>();
+        u.pTexture = OGetTexture("fx/gibs.png");
+        u.UVs = OUVS(u.pTexture, {7, 0, 6, 9});
+        unitTypes[eUnitType::GIBS_LARM] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Gibs";
+        u.pFactory = new UnitFactory<Gibs>();
+        u.pTexture = OGetTexture("fx/gibs.png");
+        u.UVs = OUVS(u.pTexture, {0, 15, 11, 9});
+        unitTypes[eUnitType::GIBS_TORSO] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Gibs";
+        u.pFactory = new UnitFactory<Gibs>();
+        u.pTexture = OGetTexture("fx/gibs.png");
+        u.UVs = OUVS(u.pTexture, {0, 0, 7, 8});
+        unitTypes[eUnitType::GIBS_RARM] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Gibs";
+        u.pFactory = new UnitFactory<Gibs>();
+        u.pTexture = OGetTexture("fx/gibs.png");
+        u.UVs = OUVS(u.pTexture, {0, 8, 6, 7});
+        unitTypes[eUnitType::GIBS_LFOOT] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Gibs";
+        u.pFactory = new UnitFactory<Gibs>();
+        u.pTexture = OGetTexture("fx/gibs.png");
+        u.UVs = OUVS(u.pTexture, {0, 9, 6, 6});
+        unitTypes[eUnitType::GIBS_RFOOT] = u;
     }
 
     // Sounds

@@ -31,4 +31,11 @@ void Minion::onReachDestination()
 void Minion::onDestroyed()
 {
     Globals::pMap->spawnFX(eFX::FX_ANIM_BLOOD_C, position);
+
+    Globals::pMap->spawn(position, eUnitType::GIBS_HEAD, team, true);
+    Globals::pMap->spawn(position, eUnitType::GIBS_LARM, team, true);
+    Globals::pMap->spawn(position, eUnitType::GIBS_TORSO, team, true);
+    Globals::pMap->spawn(position, eUnitType::GIBS_RARM, team, true);
+    Globals::pMap->spawn(position, eUnitType::GIBS_LFOOT, team, true);
+    Globals::pMap->spawn(position, eUnitType::GIBS_RFOOT, team, true);
 }

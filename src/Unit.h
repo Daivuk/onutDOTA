@@ -15,7 +15,13 @@ enum class eUnitType : uint8_t
     WAYPOINT,
     MINION,
     ARROW,
-    TOWER
+    TOWER,
+    GIBS_HEAD,
+    GIBS_LARM,
+    GIBS_TORSO,
+    GIBS_RARM,
+    GIBS_LFOOT,
+    GIBS_RFOOT
 };
 
 enum class eUnitSizeType : uint8_t
@@ -110,6 +116,7 @@ struct sUnitType
     // Anims
     std::unordered_map<int, UnitAnimDef*> anims;
     OTexture*       pTexture = nullptr;
+    Vector4         UVs = {0, 0, 1, 1};
 
     // Factory
     IUnitFactory   *pFactory = nullptr;
