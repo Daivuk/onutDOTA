@@ -21,7 +21,9 @@ enum class eUnitType : uint8_t
     GIBS_TORSO,
     GIBS_RARM,
     GIBS_LFOOT,
-    GIBS_RFOOT
+    GIBS_RFOOT,
+    HERO,
+    SPAWN_POINT
 };
 
 enum class eUnitSizeType : uint8_t
@@ -153,6 +155,7 @@ public:
     // State changes
     void            goIdle();
     void            attackTo(const Vector2 &attackPos);
+    void            moveTo(const Vector2 &movePos);
 
     // Events
     virtual void onSpawn() {}

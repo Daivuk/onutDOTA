@@ -239,7 +239,8 @@ int CALLBACK WinMain(
     {
         g_pUIContext->resize({OScreenWf, OScreenHf});
         g_pCurrentView->update();
-        g_pCurrentView->pUIScreen->update(*g_pUIContext, {OMousePos.x, OMousePos.y}, OInput->isStateDown(DIK_MOUSEB1));
+        g_pCurrentView->pUIScreen->update(*g_pUIContext, {OMousePos.x, OMousePos.y}, 
+                                          OInput->isStateDown(DIK_MOUSEB1), OInput->isStateDown(DIK_MOUSEB2), OInput->isStateDown(DIK_MOUSEB3));
     },
         []
     {

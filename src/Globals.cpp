@@ -8,6 +8,8 @@
 #include "Arrow.h"
 #include "Tower.h"
 #include "Gibs.h"
+#include "Hero.h"
+#include "SpawnPoint.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -203,6 +205,56 @@ void Globals::init()
         u.pTexture = OGetTexture("fx/gibs.png");
         u.UVs = OUVS(u.pTexture, {0, 9, 6, 6});
         unitTypes[eUnitType::GIBS_RFOOT] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "Hero";
+        u.screenName = "Hero";
+        u.category = eUnitCategory::GROUND;
+        u.sizeType = eUnitSizeType::RADIUS;
+        u.radius = .35f;
+        u.health = 150;
+        u.visionRange = 10;
+        u.alertRange = 9;
+        u.attackRange = 8;
+        u.moveSpeed = 4;
+        u.attackType = eUnitAttackType::PROJECTILE;
+        u.projectileUnitType = eUnitType::ARROW;
+        u.attackCoolDown = 1.125f;
+        u.attackDelay = .08f;
+
+        static const int BALT_IDLE_FPS = 12;
+        static const int BALT_WALK_FPS = 12;
+        static const int BALT_ATTACK_FPS = 24;
+        static const float HERO_SCALE = 3.f;
+
+        u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_IDLE_FPS, {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+        u.anims[BALT_DOWN | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_WALK_FPS, {2, 4, 3, 5}};
+        u.anims[BALT_DOWN | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_ATTACK_FPS, {6, 2, 7}};
+
+        u.anims[BALT_UP | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_IDLE_FPS, {8}};
+        u.anims[BALT_UP | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_WALK_FPS, {10, 13, 11, 12}};
+        u.anims[BALT_UP | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_ATTACK_FPS, {14, 10, 15}};
+
+        u.anims[BALT_LEFT | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_IDLE_FPS, {16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16}};
+        u.anims[BALT_LEFT | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_WALK_FPS, {18, 16, 19, 16}};
+        u.anims[BALT_LEFT | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, false, BALT_ATTACK_FPS, {20, 19, 21}};
+
+        u.anims[BALT_RIGHT | BALT_IDLE] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, true, BALT_IDLE_FPS, {16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 17, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16}};
+        u.anims[BALT_RIGHT | BALT_WALK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, true, BALT_WALK_FPS, {18, 16, 19, 16}};
+        u.anims[BALT_RIGHT | BALT_ATTACK] = new UnitAnimDef{"minions/beggarPlateArmor.png", {16, 24}, {-8, -18}, HERO_SCALE, true, BALT_ATTACK_FPS, {20, 19, 21}};
+
+        u.pFactory = new UnitFactory<Hero>();
+        unitTypes[eUnitType::HERO] = u;
+    }
+    {
+        sUnitType u;
+        u.typeName = "SpawnPoint";
+        u.category = eUnitCategory::NONE;
+        u.sizeType = eUnitSizeType::BOX;
+        u.boxSize = {1, 1};
+        u.pFactory = new UnitFactory<SpawnPoint>();
+        unitTypes[eUnitType::SPAWN_POINT] = u;
     }
 
     // Sounds

@@ -9,6 +9,8 @@
 #include "Arrow.h"
 #include "Tower.h"
 #include "Gibs.h"
+#include "Hero.h"
+#include "SpawnPoint.h"
 
 sMapChunk::sMapChunk()
 {
@@ -33,6 +35,8 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Arrow));
     biggest = std::max<>(biggest, sizeof(Tower));
     biggest = std::max<>(biggest, sizeof(Gibs));
+    biggest = std::max<>(biggest, sizeof(Hero));
+    biggest = std::max<>(biggest, sizeof(SpawnPoint));
 
     pUnitPool = new OPool(biggest, MAX_UNITS);
     pUnits = new TList<Unit>(offsetOf(&Unit::linkMain));
@@ -634,4 +638,12 @@ Decal* Map::spawnDecal(eFX fxDecal, const Vector2& in_position, float in_angle, 
         pDecals->InsertTail(pDecal);
     }
     return pDecal;
+}
+
+Vector2 Map::screenToMap(const Vector2 &screenPos) const
+{
+    return{
+        m_cameraPos.x + (screenPos.x - OScreenWf * .5f) / 40.f,
+        m_cameraPos.y + (screenPos.y - OScreenHf * .5f) / 40.f
+    };
 }

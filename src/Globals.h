@@ -5,6 +5,7 @@
 #include "UnitAnim.h"
 #include "map.h"
 #include <unordered_map>
+#include "Unit.h"
 
 class Globals
 {
@@ -21,6 +22,7 @@ public:
         int64_t xp;
         int team;
         std::string ipPort;
+        Unit *pUnit = nullptr; // Controlling unit. His hero
     } myUser;
 
     static struct SGame

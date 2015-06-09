@@ -215,8 +215,28 @@ void Unit::rts_updateState()
             }
             break;
         }
+        case eUnitState::MOVE:
+        {
+            if (animState != BALT_ATTACK)
+            {
+                doMovement();
+            }
+            break;
+        }
         case eUnitState::IDLE:
         {
+            // If we are not currently attacking, update target state
+            if (pType->attackType != eUnitAttackType::NONE)
+            {
+                if (!pTarget)
+                {
+                    pTarget = aquireTarget();
+                    if (pTarget)
+                    {
+                        attackTo(getCenter());
+                    }
+                }
+            }
             break;
         }
         default: break;
@@ -234,6 +254,7 @@ Vector2 Unit::getCenter() const
 
 void Unit::goIdle()
 {
+    pTarget = nullptr;
     state = eUnitState::IDLE;
 }
 
@@ -241,6 +262,12 @@ void Unit::attackTo(const Vector2 &attackPos)
 {
     state = eUnitState::ATTACK_POSITION;
     calculatePathToPos(attackPos);
+}
+
+void Unit::moveTo(const Vector2 &movePos)
+{
+    state = eUnitState::MOVE;
+    calculatePathToPos(movePos);
 }
 
 void Unit::calculatePathToPos(const Vector2 &in_targetPos)

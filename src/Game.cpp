@@ -3,6 +3,8 @@
 #include "commands.h"
 #include "Minion.h"
 #include "Spawner.h"
+#include "SpawnPoint.h"
+#include "Hero.h"
 
 #define WAVE_INTERVAL 3600
 #define WAVE_MINION_INTERVAL 45
@@ -34,6 +36,40 @@ Game::Game()
 
     Globals::pRTS->retain();
 
+    // Spawn Heroes
+    decltype(Globals::pMap->getUnits<SpawnPoint>(TEAM_RED)) spawns[2] = 
+    {
+        Globals::pMap->getUnits<SpawnPoint>(TEAM_RED), 
+        Globals::pMap->getUnits<SpawnPoint>(TEAM_BLUE)
+    };
+    for (auto &user : Globals::myGame.users)
+    {
+        auto &teamSpawns = spawns[user.team];
+        if (teamSpawns.empty()) continue; // Oups!
+        auto spawnIndex = onut::randi() % teamSpawns.size();
+        auto pSpawn = teamSpawns[spawnIndex];
+        teamSpawns.erase(teamSpawns.begin() + spawnIndex);
+
+        auto pHero = dynamic_cast<Hero*>(Globals::pMap->spawn(pSpawn->getCenter(), eUnitType::HERO, user.team));
+        if (pHero)
+        {
+            pHero->pUser = &user;
+            user.pUnit = pHero;
+
+            if (user.id == Globals::myUser.id)
+            {
+                Globals::myUser.pUnit = pHero;
+            }
+        }
+    }
+
+    // Now focus the camera on our hero
+    auto pMyHero = Globals::myUser.pUnit;
+    if (pMyHero)
+    {
+        Globals::pMap->m_cameraPos = pMyHero->getCenter();
+    }
+
     pChat->onTextChanged = [=](onut::UITextBox*, const onut::UITextBoxEvent&)
     {
         if (!pChat->textComponent.text.empty())
@@ -54,6 +90,15 @@ Game::Game()
     {
         pChat->isVisible = false;
         pChat->textComponent.text.clear();
+    };
+    pUIScreen->onRightMouseDown = [=](onut::UIControl*, const onut::UIMouseEvent& evt)
+    {
+        auto pMyHero = Globals::myUser.pUnit;
+        if (pMyHero)
+        {
+            auto mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
+            pMyHero->attackTo(mapPos);
+        }
     };
 }
 

@@ -25,6 +25,8 @@ public:
     void update();
     void rts_update();
 
+    Vector2 screenToMap(const Vector2 &screenPos) const;
+
     void playSound(const Vector2& position, OSound *pSound);
     FX* spawnFX(eFX fxAnim, const Vector2& in_position, float in_angle = 0);
     Decal* spawnDecal(eFX fxDecal, const Vector2& in_position, float in_angle = 0, float in_opacity = 1, float in_scale = 1);
@@ -39,6 +41,20 @@ public:
         {
             auto pTunit = dynamic_cast<Tunit*>(pUnit);
             if (pTunit)
+            {
+                ret.push_back(pTunit);
+            }
+        }
+        return std::move(ret);
+    }
+    template<typename Tunit>
+    std::vector<Tunit*> getUnits(int team)
+    {
+        std::vector<Tunit*> ret;
+        for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
+        {
+            auto pTunit = dynamic_cast<Tunit*>(pUnit);
+            if (pTunit && pTunit->team == team)
             {
                 ret.push_back(pTunit);
             }

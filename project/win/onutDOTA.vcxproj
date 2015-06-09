@@ -105,6 +105,7 @@
     <ClCompile Include="..\..\src\Nexus.cpp" />
     <ClCompile Include="..\..\src\SignUp.cpp" />
     <ClCompile Include="..\..\src\Spawner.cpp" />
+    <ClCompile Include="..\..\src\SpawnPoint.cpp" />
     <ClCompile Include="..\..\src\Tower.cpp" />
     <ClCompile Include="..\..\src\Unit.cpp" />
     <ClCompile Include="..\..\src\View.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="..\..\src\Nexus.h" />
     <ClInclude Include="..\..\src\SignUp.h" />
     <ClInclude Include="..\..\src\Spawner.h" />
+    <ClInclude Include="..\..\src\SpawnPoint.h" />
     <ClInclude Include="..\..\src\Tower.h" />
     <ClInclude Include="..\..\src\Unit.h" />
     <ClInclude Include="..\..\src\UnitAnim.h" />
