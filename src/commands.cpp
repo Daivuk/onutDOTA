@@ -35,4 +35,30 @@ void hookCommands()
             }
         }
     });
+
+    Globals::pRTS->registerCommand(CMD_MOVE_TO, sizeof(sCMD_MOVE_TO),
+                                   [](void *pData, onut::RTSPeer *pPeer)
+    {
+        auto pUser = getUserFromPeer(pPeer);
+        if (!pUser) return;
+        auto pMsg = (sCMD_MOVE_TO*)pData;
+
+        if (pUser->pUnit)
+        {
+            pUser->pUnit->moveTo(pMsg->mapPos);
+        }
+    });
+
+    Globals::pRTS->registerCommand(CMD_ATTACK_TO, sizeof(sCMD_ATTACK_TO),
+                                   [](void *pData, onut::RTSPeer *pPeer)
+    {
+        auto pUser = getUserFromPeer(pPeer);
+        if (!pUser) return;
+        auto pMsg = (sCMD_ATTACK_TO*)pData;
+
+        if (pUser->pUnit)
+        {
+            pUser->pUnit->attackTo(pMsg->mapPos);
+        }
+    });
 }

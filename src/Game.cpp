@@ -96,8 +96,18 @@ Game::Game()
         auto pMyHero = Globals::myUser.pUnit;
         if (pMyHero)
         {
-            auto mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
-            pMyHero->attackTo(mapPos);
+            if (OInput->isStateDown(DIK_LSHIFT))
+            {
+                sCMD_ATTACK_TO cmd;
+                cmd.mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
+                Globals::pRTS->sendCommand(CMD_ATTACK_TO, &cmd);
+            }
+            else
+            {
+                sCMD_MOVE_TO cmd;
+                cmd.mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
+                Globals::pRTS->sendCommand(CMD_MOVE_TO, &cmd);
+            }
         }
     };
 }
