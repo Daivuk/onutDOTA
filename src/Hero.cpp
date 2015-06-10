@@ -21,5 +21,5 @@ void Hero::onPlayActionSound()
 {
     static char filename[] = "hero1_action1.wav";
     filename[12] = '1' + (onut::randi() % 5);
-    OGetSound(filename)->play();
+    OGetSound(filename)->play(.5f);
 }
