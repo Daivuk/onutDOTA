@@ -12,6 +12,9 @@ enum eFX : uint8_t
     FX_ANIM_BLOOD_C,
     FX_ANIM_BLOOD_D,
 
+    FX_ANIM_MOVE_TO,
+    FX_ANIM_ATTACK_TO,
+
     FX_DECAL_BLOOD_A,
     FX_DECAL_BLOOD_B,
     FX_DECAL_BLOOD_C,

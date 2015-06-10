@@ -102,6 +102,7 @@ Game::Game()
                 sCMD_ATTACK_TO cmd;
                 cmd.mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
                 Globals::pRTS->sendCommand(CMD_ATTACK_TO, &cmd);
+                Globals::pMap->spawnFX(eFX::FX_ANIM_ATTACK_TO, cmd.mapPos);
             }
             else
             {
@@ -109,6 +110,7 @@ Game::Game()
                 sCMD_MOVE_TO cmd;
                 cmd.mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
                 Globals::pRTS->sendCommand(CMD_MOVE_TO, &cmd);
+                Globals::pMap->spawnFX(eFX::FX_ANIM_MOVE_TO, cmd.mapPos);
             }
         }
     };
