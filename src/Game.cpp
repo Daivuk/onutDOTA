@@ -98,12 +98,14 @@ Game::Game()
         {
             if (OInput->isStateDown(DIK_LSHIFT))
             {
+                pMyHero->playActionSound();
                 sCMD_ATTACK_TO cmd;
                 cmd.mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
                 Globals::pRTS->sendCommand(CMD_ATTACK_TO, &cmd);
             }
             else
             {
+                pMyHero->playActionSound();
                 sCMD_MOVE_TO cmd;
                 cmd.mapPos = Globals::pMap->screenToMap(onut::UI2Onut(evt.mousePos));
                 Globals::pRTS->sendCommand(CMD_MOVE_TO, &cmd);

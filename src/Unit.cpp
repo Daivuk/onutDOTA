@@ -6,6 +6,7 @@ static const float UNIT_TARGET_TOUCH_RADIUS = 1.5f;
 static const float UNIT_STEER_RANGE = 0.75f;
 static const float UNIT_TARGET_ESCAPE_RANGE = 15.f;
 static const float UNIT_TARGET_ESCAPE_RANGE_SQR = UNIT_TARGET_ESCAPE_RANGE * UNIT_TARGET_ESCAPE_RANGE;
+static const auto UNIT_ACTION_SOUND_DELAY = std::chrono::seconds(1);
 
 Unit::Unit()
     : pChunk(nullptr)
@@ -516,3 +517,11 @@ void Unit::renderDebug()
     }
 }
 #endif
+
+void Unit::playActionSound()
+{
+    auto now = std::chrono::steady_clock::now();
+    if (now - lastSoundTime < UNIT_ACTION_SOUND_DELAY) return;
+    lastSoundTime = now;
+    onPlayActionSound();
+}

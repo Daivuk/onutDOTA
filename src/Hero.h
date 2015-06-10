@@ -9,6 +9,7 @@ public:
     Hero();
 
     virtual void onDestroyed() override;
+    virtual void onPlayActionSound() override;
 
     Globals::SUser *pUser = nullptr;
 };

@@ -37,4 +37,3 @@ struct sCMD_ATTACK_TO
     Vector2 mapPos;
 };
 #pragma pack (pop)
-

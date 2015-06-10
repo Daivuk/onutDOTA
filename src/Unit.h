@@ -141,6 +141,7 @@ public:
     void            performAttack();
     void            markForDeletion();
     bool            damage(float damage);
+    void            playActionSound();
 
     // Updates
     virtual void    rts_update();
@@ -163,6 +164,7 @@ public:
     virtual void onTargetDestroyed(Unit *in_pTarget) {}
     virtual void onOnwerDestroyed(Unit *in_pOwner) {}
     virtual void onDestroyed() {}
+    virtual void onPlayActionSound() {}
 
     // Link to lists
     LIST_LINK(Unit) linkMain;
@@ -194,6 +196,7 @@ public:
     float           attackDelay = 0;
     Unit           *pOwner = nullptr;
     bool            bDeletionRequested = false;
+    std::chrono::steady_clock::time_point lastSoundTime;
 
     // Unit stats
     int             health = 100;
