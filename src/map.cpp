@@ -315,6 +315,13 @@ void Map::render()
         }
     }
     egStatePop();
+
+    auto pHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
+    if (pHero)
+    {
+        pHero->drawUI();
+    }
+
     OSB->end();
 
     egModelPop();

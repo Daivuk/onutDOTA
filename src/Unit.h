@@ -128,6 +128,7 @@ class Unit
 {
 public:
     Unit();
+    virtual ~Unit() {}
 
     Vector2         getCenter() const;
     void            calculatePathToPos(const Vector2 &in_targetPos);
@@ -165,6 +166,7 @@ public:
     virtual void onOnwerDestroyed(Unit *in_pOwner) {}
     virtual void onDestroyed() {}
     virtual void onPlayActionSound() {}
+    virtual void onUpdate() {}
 
     // Link to lists
     LIST_LINK(Unit) linkMain;

@@ -88,9 +88,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\Ability.cpp" />
     <ClCompile Include="..\..\src\Arrow.cpp" />
     <ClCompile Include="..\..\src\commands.cpp" />
     <ClCompile Include="..\..\src\Credits.cpp" />
+    <ClCompile Include="..\..\src\FireShowerAbility.cpp" />
     <ClCompile Include="..\..\src\FX.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\Gibs.cpp" />
@@ -115,11 +117,13 @@
     <ClInclude Include="..\..\src\Arrow.h" />
     <ClInclude Include="..\..\src\commands.h" />
     <ClInclude Include="..\..\src\Credits.h" />
+    <ClInclude Include="..\..\src\FireShowerAbility.h" />
     <ClInclude Include="..\..\src\FX.h" />
     <ClInclude Include="..\..\src\Game.h" />
     <ClInclude Include="..\..\src\Gibs.h" />
     <ClInclude Include="..\..\src\Globals.h" />
     <ClInclude Include="..\..\src\Hero.h" />
+    <ClInclude Include="..\..\src\Ability.h" />
     <ClInclude Include="..\..\src\Joining.h" />
     <ClInclude Include="..\..\src\Login.h" />
     <ClInclude Include="..\..\src\Main.h" />

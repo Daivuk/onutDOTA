@@ -1,8 +1,18 @@
 #include "Hero.h"
 #include "Globals.h"
+#include "FireShowerAbility.h"
 
 Hero::Hero()
 {
+    abilities.push_back(new FireShowerAbility(this));
+}
+
+Hero::~Hero()
+{
+    for (auto pAbility : abilities)
+    {
+        delete pAbility;
+    }
 }
 
 void Hero::onDestroyed()
@@ -22,4 +32,20 @@ void Hero::onPlayActionSound()
     static char filename[] = "hero1_action1.wav";
     filename[12] = '1' + (onut::randi() % 5);
     OGetSound(filename)->play(.5f);
+}
+
+void Hero::onUpdate()
+{
+    for (auto pAbility : abilities)
+    {
+        pAbility->rts_update();
+    }
+}
+
+void Hero::drawUI()
+{
+    for (auto pAbility : abilities)
+    {
+        pAbility->render();
+    }
 }

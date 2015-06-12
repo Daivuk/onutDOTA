@@ -14,6 +14,7 @@ extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
 
 Game::Game()
+    : onut::EventObserver(OEvent)
 {
     // Randomize
     srand(Globals::myGame.seed);
@@ -114,6 +115,22 @@ Game::Game()
             }
         }
     };
+    OEvent->addEvent("Trigger Ability 1", []{return OInput->isStateJustDown(DIK_Q); });
+    observe("Trigger Ability 1", []
+    {
+        auto pMyHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
+        if (pMyHero)
+        {
+            if (pMyHero->abilities.size() >= 1)
+            {
+                for (auto pAbility : pMyHero->abilities)
+                {
+                    pAbility->cancel();
+                }
+                pMyHero->abilities[0]->activate();
+            }
+        }
+    });
 }
 
 Game::~Game()

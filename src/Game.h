@@ -13,7 +13,7 @@ private:
     onut::UILabel *m_pLabel;
 };
 
-class Game : public View
+class Game : public View, public onut::EventObserver
 {
 public:
     Game();

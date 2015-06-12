@@ -122,6 +122,8 @@ void Unit::rts_update()
             animDirty = false;
         }
     }
+
+    onUpdate();
 }
 
 void Unit::rts_updateState()
