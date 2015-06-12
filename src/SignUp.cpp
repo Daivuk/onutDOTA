@@ -74,7 +74,7 @@ SignUp::SignUp()
         OAsync([this](std::string username, std::string email, std::string password)
         {
             auto ret = OHTTPPost("http://www.daivuk.com/onutDOTA/signup.php",
-                                      {{"username", username}, {"email", email}, {"password", password}}, 
+            {{"username", username}, {"email", email}, {"password", password}, {"version", std::to_string(VERSION)}},
                                       [this, email](long status, const std::string &ret)
             {
                 OSync([this, ret, email]
@@ -151,7 +151,7 @@ void SignUp::update()
         OAsync([this](std::string username)
         {
             auto ret = OHTTPPost("http://www.daivuk.com/onutDOTA/checkusrname.php",
-                                      {{"username", username}},
+            {{"username", username}, {"version", std::to_string(VERSION)}},
                                       [this](long status, const std::string &ret)
             {
                 OSync([this, ret]

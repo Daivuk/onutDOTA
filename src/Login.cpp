@@ -55,7 +55,7 @@ Login::Login()
         OAsync([this](std::string email, std::string password)
         {
             auto ret = OHTTPPost("http://www.daivuk.com/onutDOTA/signin.php",
-                {{"email", email}, {"password", password}},
+            {{"email", email}, {"password", password}, {"version", std::to_string(VERSION)}},
             [this, email](long status, const std::string &ret)
             {
                 OSync([this, ret, email]

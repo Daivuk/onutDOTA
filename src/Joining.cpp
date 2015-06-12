@@ -36,7 +36,7 @@ Joining::Joining()
     OAsync([this](Globals::SUser user)
     {
         auto ret = OHTTPPost("http://www.daivuk.com/onutDOTA/joinrequest.php",
-        {{"userId", std::to_string(user.id)}, {"token", user.token}},
+        {{"userId", std::to_string(user.id)}, {"token", user.token}, {"version", std::to_string(VERSION)}},
         [this](long status, const std::string &ret)
         {
             OSync([this, ret]
@@ -126,7 +126,8 @@ void Joining::sendIPPort()
     {
         {"userId", std::to_string(Globals::myUser.id)},
         {"token", Globals::myUser.token},
-        {"ipPort", Globals::myUser.ipPort}
+        {"ipPort", Globals::myUser.ipPort},
+        {"version", std::to_string(VERSION)}
     });
 }
 
@@ -279,7 +280,8 @@ void Joining::requestUpdate()
         {
             {"userId", std::to_string(user.id)}, 
             {"token", user.token},
-            {"gameId", std::to_string(game.id)}
+            {"gameId", std::to_string(game.id)},
+            {"version", std::to_string(VERSION)}
         },
         [this](long status, const std::string &ret)
         {
@@ -339,6 +341,7 @@ void Joining::forceStartGame()
     {
         {"userId", std::to_string(Globals::myUser.id)},
         {"token", Globals::myUser.token},
-        {"gameId", std::to_string(Globals::myGame.id)}
+        {"gameId", std::to_string(Globals::myGame.id)},
+        {"version", std::to_string(VERSION)}
     });
 }

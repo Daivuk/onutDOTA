@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include "Unit.h"
 
+#define VERSION 1
+
 class Globals
 {
 public:
