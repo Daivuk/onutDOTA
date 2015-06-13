@@ -6,6 +6,8 @@ class FireShowerAbility : public Ability
 public:
     FireShowerAbility(Unit *in_pOwner);
 
+    const char* iconFilename() const { return "icons/ability_fallingFireBall.png"; };
+
     void rts_update() override;
     void render() override;
     void trigger(const Vector2 &position) override;

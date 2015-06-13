@@ -3,8 +3,8 @@
 #include "Unit.h"
 
 static const float FIRE_BALL_DURATION = .5f;
-static const Vector2 FIRE_BALL_START_OFFSET = {2, 0};
-static const float FIRE_BACLL_START_HEIGHT = 4.f;
+static const Vector2 FIRE_BALL_START_OFFSET = {3, 0};
+static const float FIRE_BACLL_START_HEIGHT = 6.f;
 
 class FallingFireBall : public Unit
 {

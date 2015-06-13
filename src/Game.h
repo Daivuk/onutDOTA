@@ -32,6 +32,7 @@ public:
     onut::UITextBox *pChat;
     onut::UIControl *pChatContainer;
     onut::UILabel *pChatMsgTemplate;
+    onut::UIButton *pAbilityBtn;
     int nextWaveIn = 0;
     int minionSpawned = 0;
 };

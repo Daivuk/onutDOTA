@@ -23,6 +23,7 @@ class Ability : public onut::Object
 public:
     Ability(Unit *in_pOwner);
 
+    virtual const char* iconFilename() const = 0;
     virtual void trigger(const Vector2 &in_position);
     virtual void triggerOnField(const Vector2 &in_position) {}
     virtual void activate();

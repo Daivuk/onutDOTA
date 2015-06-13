@@ -55,4 +55,8 @@ public:
     static OSound *pArrow_hit;
     static OSound *pFireball_spawn;
     static OSound *pFireball_hit;
+
+    static std::unordered_map<std::string, std::string> gameValues;
+    static int getInt(const std::string& key, int defaultValue);
+    static float getFloat(const std::string& key, float defaultValue);
 };

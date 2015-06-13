@@ -100,6 +100,7 @@
     <ClCompile Include="..\..\src\Globals.cpp" />
     <ClCompile Include="..\..\src\Hero.cpp" />
     <ClCompile Include="..\..\src\Joining.cpp" />
+    <ClCompile Include="..\..\src\LightningBeamAbility.cpp" />
     <ClCompile Include="..\..\src\Login.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\MainView.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="..\..\src\Hero.h" />
     <ClInclude Include="..\..\src\Ability.h" />
     <ClInclude Include="..\..\src\Joining.h" />
+    <ClInclude Include="..\..\src\LightningBeamAbility.h" />
     <ClInclude Include="..\..\src\Login.h" />
     <ClInclude Include="..\..\src\Main.h" />
     <ClInclude Include="..\..\src\map.h" />

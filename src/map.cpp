@@ -711,15 +711,20 @@ void Map::splashDamage(const Vector2& position, float damage, float radius, Unit
             auto pChunk = Globals::pMap->pChunks + (chunkY * Globals::pMap->chunkXCount + chunkX);
             for (auto pUnit = pChunk->pUnits->Head(); pUnit; pUnit = pChunk->pUnits->Next(pUnit))
             {
-                float dmgPercent = (radius - Vector2::Distance(pUnit->position, position)) / radius;
-                if (dmgPercent > 0)
+                if (pUnit->pType->category == eUnitCategory::GROUND ||
+                    pUnit->pType->category == eUnitCategory::BUILDLING ||
+                    pUnit->pType->category == eUnitCategory::AIR)
                 {
-                    dmgPercent = 1 - (1 - dmgPercent) * (1 - dmgPercent);
-                    if (pUnit->damage(dmgPercent * damage))
+                    float dmgPercent = (radius - Vector2::Distance(pUnit->position, position)) / radius;
+                    if (dmgPercent > 0)
                     {
-                        if (pFrom)
+                        dmgPercent = 1 - (1 - dmgPercent) * (1 - dmgPercent);
+                        if (pUnit->damage(dmgPercent * damage))
                         {
-                            pFrom->kills++;
+                            if (pFrom)
+                            {
+                                pFrom->kills++;
+                            }
                         }
                     }
                 }

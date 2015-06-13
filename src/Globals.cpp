@@ -25,10 +25,50 @@ uint32_t Globals::rts_frame = 0;
 std::unordered_map<eUnitType, sUnitType> Globals::unitTypes;
 std::unordered_map<std::string, eUnitType> Globals::unitTypesByName;
 
+std::unordered_map<std::string, std::string> Globals::gameValues;
+
 OSound *Globals::pArrow_spawnSound = nullptr;
 OSound *Globals::pArrow_hit = nullptr;
 OSound *Globals::pFireball_spawn = nullptr;
 OSound *Globals::pFireball_hit = nullptr;
+
+int Globals::getInt(const std::string& key, int defaultValue)
+{
+    auto it = gameValues.find(key);
+    if (it != gameValues.end())
+    {
+        try
+        {
+            auto ret = std::stoi(it->second);
+            return ret;
+        }
+        catch (std::exception e)
+        {
+            return defaultValue;
+        }
+    }
+    gameValues[key] = std::to_string(defaultValue);
+    return defaultValue;
+}
+
+float Globals::getFloat(const std::string& key, float defaultValue)
+{
+    auto it = gameValues.find(key);
+    if (it != gameValues.end())
+    {
+        try
+        {
+            auto ret = std::stof(it->second);
+            return ret;
+        }
+        catch (std::exception e)
+        {
+            return defaultValue;
+        }
+    }
+    gameValues[key] = std::to_string(defaultValue);
+    return defaultValue;
+}
 
 void Globals::init()
 {
@@ -44,10 +84,10 @@ void Globals::init()
         u.sizeType = eUnitSizeType::BOX;
         u.boxSize = {3, 3};
         u.yOffset = 3;
-        u.health = 500;
-        u.armor = 5;
-        u.visionRange = 10;
-        u.alertRange = 8;
+        u.health = getInt("spawner_health", 500);
+        u.armor = getInt("spawner_armor", 5);
+        u.visionRange = getFloat("spawner_vision_range", 10);
+        u.alertRange = getFloat("spawner_alert_range", 8);
         u.anims[BALT_DOWN | BALT_IDLE] = new UnitAnimDef{"buildings/buildings.png", {-40.f, -40.f}, {200.f, 200.f}, false, 0, {{240.f, 0.f, 200.f, 200.f}}};
         u.anims[BALT_UP | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
         u.anims[BALT_LEFT | BALT_IDLE] = u.anims[BALT_DOWN | BALT_IDLE];
@@ -263,7 +303,6 @@ void Globals::init()
         sUnitType u;
         u.category = eUnitCategory::PROJECTILE;
         u.pFactory = new UnitFactory<FallingFireBall>();
-        u.pTexture = OGetTexture("minions/arrow.png");
         u.damage = 10.f;
         u.damageRadius = 1.0f;
         u.anims[BALT_DOWN | BALT_IDLE] = FX::s_FXAnims[FX_ANIM_FIRE_BALL];

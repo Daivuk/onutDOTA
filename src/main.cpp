@@ -96,33 +96,27 @@ int CALLBACK WinMain(
             auto pGame = dynamic_cast<Game*>(g_pCurrentView);
             if (pGame)
             {
-                auto pMyHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
-                if (pMyHero)
+                auto pAbility = static_cast<Ability*>(pPanel->pUserData);
+                if (pAbility)
                 {
-                    if (pMyHero->abilities.size() >= 1)
-                    {
-                        if (!pMyHero->abilities[0]->canUse())
-                        {
-                            OSB->end();
-                            float percent = pMyHero->abilities[0]->coolDown / pMyHero->abilities[0]->getCoolDown();
-                            auto center = onut::UI2Onut(rect).Center();
-                            egColor4(0, 0, 0, .75f);
-                            egBindDiffuse(0);
-                            egBegin(EG_TRIANGLE_FAN);
-                            egPosition2(center.x, center.y);
-                            egPosition2(center.x, center.y - 128);
-                            float angle = -3.141516f * .5f * percent;
-                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
-                            angle = -3.141516f * percent;
-                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
-                            angle = -(3.141516f + 3.141516f * .5f) * percent;
-                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
-                            angle = -3.141516f * 2.f * percent;
-                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
-                            egEnd();
-                            OSB->begin();
-                        }
-                    }
+                    OSB->end();
+                    float percent = pAbility->coolDown / pAbility->getCoolDown();
+                    auto center = onut::UI2Onut(rect).Center();
+                    egColor4(0, 0, 0, .75f);
+                    egBindDiffuse(0);
+                    egBegin(EG_TRIANGLE_FAN);
+                    egPosition2(center.x, center.y);
+                    egPosition2(center.x, center.y - 128);
+                    float angle = -3.141516f * .5f * percent;
+                    egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                    angle = -3.141516f * percent;
+                    egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                    angle = -(3.141516f + 3.141516f * .5f) * percent;
+                    egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                    angle = -3.141516f * 2.f * percent;
+                    egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                    egEnd();
+                    OSB->begin();
                 }
             }
         });

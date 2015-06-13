@@ -65,7 +65,7 @@ Game::Game()
     }
 
     // Now focus the camera on our hero
-    auto pMyHero = Globals::myUser.pUnit;
+    auto pMyHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
     if (pMyHero)
     {
         Globals::pMap->m_cameraPos = pMyHero->getCenter();
@@ -115,10 +115,29 @@ Game::Game()
             }
         }
     };
-    pUIScreen->getChild<onut::UIButton>("btnAbility")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
+    pAbilityBtn = pUIScreen->getChild<onut::UIButton>("btnAbility");
+    pAbilityBtn->retain();
+    pAbilityBtn->remove();
+
+    // Add player abilities
+    if (pMyHero)
     {
-        OEvent->fireEvent("Trigger Ability 1");
-    };
+        int cnt = 0;
+        for (auto pAbility : pMyHero->abilities)
+        {
+            auto pNewAbilityBtn = pAbilityBtn->copy();
+            auto pImage = pNewAbilityBtn->getChild<onut::UIImage>("imgAbility");
+            pImage->scale9Component.image.filename = pAbility->iconFilename();
+            pNewAbilityBtn->rect.position.x = pNewAbilityBtn->rect.size.x * (float)cnt - pNewAbilityBtn->rect.size.x * (float)(pMyHero->abilities.size() - 1) * .5f;
+            pNewAbilityBtn->getChild("pnlAbilityProgress")->pUserData = pAbility;
+            pUIScreen->add(pNewAbilityBtn);
+            ++cnt;
+            pNewAbilityBtn->onClick = [=](onut::UIControl*, const onut::UIMouseEvent&)
+            {
+                OEvent->fireEvent("Trigger Ability " + std::to_string(cnt));
+            };
+        }
+    }
     OEvent->addEvent("Trigger Ability 1", []{return OInput->isStateJustDown(DIK_Q); });
     observe("Trigger Ability 1", []
     {
@@ -138,10 +157,30 @@ Game::Game()
             }
         }
     });
+    OEvent->addEvent("Trigger Ability 2", []{return OInput->isStateJustDown(DIK_W); });
+    observe("Trigger Ability 2", []
+    {
+        auto pMyHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
+        if (pMyHero)
+        {
+            if (pMyHero->abilities.size() >= 2)
+            {
+                for (auto pAbility : pMyHero->abilities)
+                {
+                    pAbility->cancel();
+                }
+                if (pMyHero->abilities[1]->canUse())
+                {
+                    pMyHero->abilities[1]->activate();
+                }
+            }
+        }
+    });
 }
 
 Game::~Game()
 {
+    pAbilityBtn->release();
     pChatMsgTemplate->release();
     for (auto pChatMsg : pChatContainer->getChildren())
     {

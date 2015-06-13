@@ -19,7 +19,7 @@ void FallingFireBall::render()
 
     auto &frame = anim.pAnimDef->frames[anim.frame];
     auto UV = frame.UVs;
-    OSB->drawSpriteWithUVs(anim.pAnimDef->pTexture, {position.x, position.y - z}, UV, Color::White, angle, 1.f / 40.f);
+    OSB->drawSpriteWithUVs(anim.pAnimDef->pTexture, {position.x, position.y - z}, UV, Color::White, angle, 1.25f / 40.f);
 }
 
 void FallingFireBall::rts_update()

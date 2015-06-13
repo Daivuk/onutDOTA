@@ -1,10 +1,12 @@
 #include "Hero.h"
 #include "Globals.h"
 #include "FireShowerAbility.h"
+#include "LightningBeamAbility.h"
 
 Hero::Hero()
 {
     abilities.push_back(new FireShowerAbility(this));
+    abilities.push_back(new LightningBeamAbility(this));
     for (auto pAbility : abilities)
     {
         pAbility->retain();
