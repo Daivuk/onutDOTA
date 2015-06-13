@@ -7,8 +7,10 @@ Ability::Ability(Unit *in_pOwner)
 {
 }
 
-void Ability::trigger(const Vector2 &position)
+void Ability::trigger(const Vector2 &in_position)
 {
+    position = in_position;
+    coolDown = getCoolDown();
 }
 
 void Ability::activate()
@@ -32,6 +34,10 @@ void Ability::activate()
 
 void Ability::rts_update()
 {
+    if (coolDown > 0)
+    {
+        coolDown -= ODT;
+    }
     if (isActive)
     {
         if (OInput->isStateJustDown(DIK_ESCAPE) ||

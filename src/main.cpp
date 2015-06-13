@@ -5,6 +5,7 @@
 #include "Login.h"
 #include "eg.h"
 #include "Globals.h"
+#include "Hero.h"
 
 onut::UIContext *g_pUIContext = nullptr;
 View *g_pCurrentView = nullptr;
@@ -88,6 +89,42 @@ int CALLBACK WinMain(
             ORenderer->resetState();
             OSB->begin();
             OSB->drawRect(nullptr, onut::UI2Onut(rect), Color(0, 0, 0, .35f));
+        });
+
+        g_pUIContext->addStyle<onut::UIPanel>("ability", [](const onut::UIPanel* pPanel, const onut::sUIRect& rect)
+        {
+            auto pGame = dynamic_cast<Game*>(g_pCurrentView);
+            if (pGame)
+            {
+                auto pMyHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
+                if (pMyHero)
+                {
+                    if (pMyHero->abilities.size() >= 1)
+                    {
+                        if (!pMyHero->abilities[0]->canUse())
+                        {
+                            OSB->end();
+                            float percent = pMyHero->abilities[0]->coolDown / pMyHero->abilities[0]->getCoolDown();
+                            auto center = onut::UI2Onut(rect).Center();
+                            egColor4(0, 0, 0, .75f);
+                            egBindDiffuse(0);
+                            egBegin(EG_TRIANGLE_FAN);
+                            egPosition2(center.x, center.y);
+                            egPosition2(center.x, center.y - 128);
+                            float angle = -3.141516f * .5f * percent;
+                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                            angle = -3.141516f * percent;
+                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                            angle = -(3.141516f + 3.141516f * .5f) * percent;
+                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                            angle = -3.141516f * 2.f * percent;
+                            egPosition2(center.x + std::sinf(angle) * 128, center.y - std::cosf(angle) * 128);
+                            egEnd();
+                            OSB->begin();
+                        }
+                    }
+                }
+            }
         });
 
         auto getTextureForState = [](onut::UIControl *pControl, const std::string &filename)

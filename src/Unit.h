@@ -23,7 +23,8 @@ enum class eUnitType : uint8_t
     GIBS_LFOOT,
     GIBS_RFOOT,
     HERO,
-    SPAWN_POINT
+    SPAWN_POINT,
+    FALLING_FIRE_BALL
 };
 
 enum class eUnitSizeType : uint8_t

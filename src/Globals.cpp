@@ -10,6 +10,7 @@
 #include "Gibs.h"
 #include "Hero.h"
 #include "SpawnPoint.h"
+#include "FallingFireBall.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -26,6 +27,8 @@ std::unordered_map<std::string, eUnitType> Globals::unitTypesByName;
 
 OSound *Globals::pArrow_spawnSound = nullptr;
 OSound *Globals::pArrow_hit = nullptr;
+OSound *Globals::pFireball_spawn = nullptr;
+OSound *Globals::pFireball_hit = nullptr;
 
 void Globals::init()
 {
@@ -256,12 +259,26 @@ void Globals::init()
         u.pFactory = new UnitFactory<SpawnPoint>();
         unitTypes[eUnitType::SPAWN_POINT] = u;
     }
+    {
+        sUnitType u;
+        u.category = eUnitCategory::PROJECTILE;
+        u.pFactory = new UnitFactory<FallingFireBall>();
+        u.pTexture = OGetTexture("minions/arrow.png");
+        u.damage = 10.f;
+        u.damageRadius = 1.0f;
+        u.anims[BALT_DOWN | BALT_IDLE] = FX::s_FXAnims[FX_ANIM_FIRE_BALL];
+        unitTypes[eUnitType::FALLING_FIRE_BALL] = u;
+    }
 
     // Sounds
     pArrow_spawnSound = OGetSound("arrow.wav");
     pArrow_spawnSound->setMaxInstance(4);
     pArrow_hit = OGetSound("arrowHit.wav");
     pArrow_hit->setMaxInstance(2);
+    pFireball_spawn = OGetSound("fireball.wav");
+    pFireball_spawn->setMaxInstance(5);
+    pFireball_hit = OGetSound("fireballImpact.wav");
+    pFireball_hit->setMaxInstance(5);
 
     for (auto &unitType : unitTypes)
     {

@@ -11,6 +11,7 @@
 #include "Gibs.h"
 #include "Hero.h"
 #include "SpawnPoint.h"
+#include "FallingFireBall.h"
 
 sMapChunk::sMapChunk()
 {
@@ -37,6 +38,7 @@ Map::Map(int seed)
     biggest = std::max<>(biggest, sizeof(Gibs));
     biggest = std::max<>(biggest, sizeof(Hero));
     biggest = std::max<>(biggest, sizeof(SpawnPoint));
+    biggest = std::max<>(biggest, sizeof(FallingFireBall));
 
     pUnitPool = new OPool(biggest, MAX_UNITS);
     pUnits = new TList<Unit>(offsetOf(&Unit::linkMain));
@@ -188,6 +190,10 @@ Map::Map(int seed)
 
 Map::~Map()
 {
+    for (auto pAbility : abilities)
+    {
+        pAbility->release();
+    }
     if (pFXPool) delete pFXPool;
     if (pDecalPool) delete pDecalPool;
     if (pDecals) delete pDecals;
@@ -316,6 +322,11 @@ void Map::render()
     }
     egStatePop();
 
+    for (auto pAbility : abilities)
+    {
+        pAbility->render();
+    }
+
     auto pHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
     if (pHero)
     {
@@ -375,6 +386,14 @@ void Map::update()
 
 void Map::rts_update()
 {
+    // Abilities
+    static auto abilitiesCopy = abilities;
+    abilitiesCopy = abilities;
+    for (auto pAbility : abilitiesCopy)
+    {
+        pAbility->rts_update();
+    }
+
     // Update FX
     for (auto pDecal = pDecals->Head(); pDecal; )
     {
@@ -593,7 +612,7 @@ bool Map::passable(int x, int y)
     return !collisions[y * mapWidth + x];
 }
 
-void Map::playSound(const Vector2& position, OSound *pSound)
+void Map::playSound(const Vector2& position, OSound *pSound, float volume)
 {
     // Define the visible rectangle
     Rect rect;
@@ -609,7 +628,7 @@ void Map::playSound(const Vector2& position, OSound *pSound)
 
     if (rect.Contains(position))
     {
-        pSound->play(1, balance);
+        pSound->play(volume, balance);
     }
     else
     {
@@ -617,7 +636,7 @@ void Map::playSound(const Vector2& position, OSound *pSound)
         dis = 1 - dis / 20;
         if (dis > 0)
         {
-            pSound->play(dis, balance);
+            pSound->play(dis * volume, balance);
         }
     }
 }
@@ -653,4 +672,58 @@ Vector2 Map::screenToMap(const Vector2 &screenPos) const
         m_cameraPos.x + (screenPos.x - OScreenWf * .5f) / 40.f,
         m_cameraPos.y + (screenPos.y - OScreenHf * .5f) / 40.f
     };
+}
+
+void Map::spawnAbility(Ability *pAbility)
+{
+    pAbility->retain();
+    abilities.push_back(pAbility);
+}
+
+void Map::destroyAbility(Ability *pAbility)
+{
+    pAbility->release();
+    for (decltype(abilities.size()) i = 0; i < abilities.size();)
+    {
+        auto pAbility = abilities[i];
+        if (pAbility == pAbility)
+        {
+            pAbility->release();
+            abilities.erase(abilities.begin() + i);
+            continue;
+        }
+        ++i;
+    }
+}
+
+void Map::splashDamage(const Vector2& position, float damage, float radius, Unit *pFrom)
+{
+    // Steer against others
+    int chunkFromX = (int)(position.x - radius) / CHUNK_SIZE;
+    int chunkFromY = (int)(position.y - radius) / CHUNK_SIZE;
+    int chunkToX = (int)(position.x + radius) / CHUNK_SIZE;
+    int chunkToY = (int)(position.y + radius) / CHUNK_SIZE;
+
+    for (int chunkY = chunkFromY; chunkY <= chunkToY; ++chunkY)
+    {
+        for (int chunkX = chunkFromX; chunkX <= chunkToX; ++chunkX)
+        {
+            auto pChunk = Globals::pMap->pChunks + (chunkY * Globals::pMap->chunkXCount + chunkX);
+            for (auto pUnit = pChunk->pUnits->Head(); pUnit; pUnit = pChunk->pUnits->Next(pUnit))
+            {
+                float dmgPercent = (radius - Vector2::Distance(pUnit->position, position)) / radius;
+                if (dmgPercent > 0)
+                {
+                    dmgPercent = 1 - (1 - dmgPercent) * (1 - dmgPercent);
+                    if (pUnit->damage(dmgPercent * damage))
+                    {
+                        if (pFrom)
+                        {
+                            pFrom->kills++;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

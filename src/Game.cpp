@@ -115,6 +115,10 @@ Game::Game()
             }
         }
     };
+    pUIScreen->getChild<onut::UIButton>("btnAbility")->onClick = [](onut::UIControl*, const onut::UIMouseEvent&)
+    {
+        OEvent->fireEvent("Trigger Ability 1");
+    };
     OEvent->addEvent("Trigger Ability 1", []{return OInput->isStateJustDown(DIK_Q); });
     observe("Trigger Ability 1", []
     {
@@ -127,7 +131,10 @@ Game::Game()
                 {
                     pAbility->cancel();
                 }
-                pMyHero->abilities[0]->activate();
+                if (pMyHero->abilities[0]->canUse())
+                {
+                    pMyHero->abilities[0]->activate();
+                }
             }
         }
     });

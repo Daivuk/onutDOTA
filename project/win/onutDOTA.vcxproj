@@ -92,6 +92,7 @@
     <ClCompile Include="..\..\src\Arrow.cpp" />
     <ClCompile Include="..\..\src\commands.cpp" />
     <ClCompile Include="..\..\src\Credits.cpp" />
+    <ClCompile Include="..\..\src\FallingFireBall.cpp" />
     <ClCompile Include="..\..\src\FireShowerAbility.cpp" />
     <ClCompile Include="..\..\src\FX.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
@@ -117,6 +118,7 @@
     <ClInclude Include="..\..\src\Arrow.h" />
     <ClInclude Include="..\..\src\commands.h" />
     <ClInclude Include="..\..\src\Credits.h" />
+    <ClInclude Include="..\..\src\FallingFireBall.h" />
     <ClInclude Include="..\..\src\FireShowerAbility.h" />
     <ClInclude Include="..\..\src\FX.h" />
     <ClInclude Include="..\..\src\Game.h" />

@@ -23,6 +23,8 @@ enum eFX : uint8_t
     FX_DECAL_BLOOD_C,
     FX_DECAL_BLOOD_D,
 
+    FX_DECAL_GROUND_MARK,
+
     FX_COUNT
 };
 

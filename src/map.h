@@ -3,6 +3,7 @@
 #include "Unit.h"
 #include "micropather.h"
 #include "FX.h"
+#include "Ability.h"
 
 #define MAX_UNITS 2048
 #define CHUNK_SIZE 4
@@ -27,9 +28,11 @@ public:
 
     Vector2 screenToMap(const Vector2 &screenPos) const;
 
-    void playSound(const Vector2& position, OSound *pSound);
+    void playSound(const Vector2& position, OSound *pSound, float volume = 1.f);
     FX* spawnFX(eFX fxAnim, const Vector2& in_position, float in_angle = 0);
     Decal* spawnDecal(eFX fxDecal, const Vector2& in_position, float in_angle = 0, float in_opacity = 1, float in_scale = 1);
+
+    void splashDamage(const Vector2& position, float damage, float radius, Unit *pFrom = nullptr);
 
     Unit *spawn(const Vector2 &position, eUnitType unitType, int team, bool bSendEvent = false);
     Unit *getUnitByMapId(uint32_t mapId);
@@ -81,6 +84,9 @@ public:
     void* xyToNode(int x, int y);
     bool passable(int x, int y);
 
+    void spawnAbility(Ability *pAbility);
+    void destroyAbility(Ability *pAbility);
+
 public:
     onut::TiledMap m_tiledMap;
     sMapChunk *pChunks;
@@ -95,4 +101,5 @@ public:
     int chunkYCount = 0;
     OPool *pFXPool = nullptr;
     OPool *pDecalPool = nullptr;
+    std::vector<Ability *> abilities;
 };

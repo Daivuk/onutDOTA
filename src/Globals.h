@@ -53,4 +53,6 @@ public:
 
     static OSound *pArrow_spawnSound;
     static OSound *pArrow_hit;
+    static OSound *pFireball_spawn;
+    static OSound *pFireball_hit;
 };

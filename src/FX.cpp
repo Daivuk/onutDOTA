@@ -38,6 +38,8 @@ void FX::init()
     s_FXAnims[FX_DECAL_BLOOD_B] = new UnitAnimDef{FX_DECAL_COMMON(1), {1}};
     s_FXAnims[FX_DECAL_BLOOD_C] = new UnitAnimDef{FX_DECAL_COMMON(1), {2}};
     s_FXAnims[FX_DECAL_BLOOD_D] = new UnitAnimDef{FX_DECAL_COMMON(1), {3}};
+
+    s_FXAnims[FX_DECAL_GROUND_MARK] = new UnitAnimDef{FX_DECAL_COMMON(1), {4}};
 }
 
 FX::FX(eFX fxAnim, const Vector2& in_position, float in_angle)
