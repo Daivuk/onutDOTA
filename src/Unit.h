@@ -24,7 +24,9 @@ enum class eUnitType : uint8_t
     GIBS_RFOOT,
     HERO,
     SPAWN_POINT,
-    FALLING_FIRE_BALL
+    FALLING_FIRE_BALL,
+    ABILITY_FIRE_SHOWER,
+    ABILITY_LIGTHNING_BEAM
 };
 
 enum class eUnitSizeType : uint8_t
@@ -40,7 +42,8 @@ enum class eUnitCategory : uint8_t
     BUILDLING,
     GROUND,
     AIR,
-    PROJECTILE
+    PROJECTILE,
+    ABILITY
 };
 
 // The main state the unit is in. The player is aware of those states.
@@ -94,6 +97,7 @@ struct sUnitType
 
     // Sprite / Anim info
     float           yOffset = 0;
+    bool            renderOnTop = false;
 
     // Stats
     int             health = 0;

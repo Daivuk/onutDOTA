@@ -34,6 +34,9 @@ void FX::init()
     s_FXAnims[FX_ANIM_FIRE_BALL] = new UnitAnimDef{FX_ANIM_COMMON(1), fxSequence(0, 8, 6)};
     s_FXAnims[FX_ANIM_FIRE_EXPLOSION] = new UnitAnimDef{FX_ANIM_COMMON(1), fxSequence(0, 9, 9)};
 
+    s_FXAnims[FX_ANIM_LIGHTNING_SHOCK] = new UnitAnimDef{FX_ANIM_COMMON(1), fxSequence(0, 3, 10)};
+    s_FXAnims[FX_ANIM_LIGHTNING_SHOCK_BIG] = new UnitAnimDef{FX_ANIM_COMMON(4), fxSequence(0, 3, 10)};
+
     s_FXAnims[FX_DECAL_BLOOD_A] = new UnitAnimDef{FX_DECAL_COMMON(1), {0}};
     s_FXAnims[FX_DECAL_BLOOD_B] = new UnitAnimDef{FX_DECAL_COMMON(1), {1}};
     s_FXAnims[FX_DECAL_BLOOD_C] = new UnitAnimDef{FX_DECAL_COMMON(1), {2}};

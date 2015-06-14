@@ -100,7 +100,7 @@ int CALLBACK WinMain(
                 if (pAbility)
                 {
                     OSB->end();
-                    float percent = pAbility->coolDown / pAbility->getCoolDown();
+                    float percent = pAbility->abilityCoolDown / pAbility->getAbilityCoolDown();
                     auto center = onut::UI2Onut(rect).Center();
                     egColor4(0, 0, 0, .75f);
                     egBindDiffuse(0);

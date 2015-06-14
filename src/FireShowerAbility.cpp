@@ -5,8 +5,7 @@
 #define FIRE_BALL_COUNT 10
 #define FILE_BALL_INTERFACE .2f
 
-FireShowerAbility::FireShowerAbility(Unit *in_pOwner)
-    : Ability(in_pOwner)
+FireShowerAbility::FireShowerAbility()
 {
 }
 
@@ -17,7 +16,6 @@ void FireShowerAbility::rts_update()
     if (isInstance)
     {
         fireBallSpawnTimer += ODT;
-        retain();
         while (fireBallSpawnTimer >= FILE_BALL_INTERFACE)
         {
             fireBallSpawnTimer -= FILE_BALL_INTERFACE;
@@ -25,7 +23,7 @@ void FireShowerAbility::rts_update()
             if (pOwner)
             {
                 float angle = onut::randf(0, DirectX::XM_2PI);
-                float radius = std::sqrtf(onut::randf(0, getRadius()));
+                float radius = std::sqrtf(onut::randf(0, getAbilityRadius()));
                 float x = position.x + radius * std::cosf(angle);
                 float y = position.y + radius * std::sinf(angle);
                 Globals::pMap->spawn(Vector2{x, y} + FIRE_BALL_START_OFFSET, eUnitType::FALLING_FIRE_BALL, pOwner->team, true);
@@ -34,11 +32,10 @@ void FireShowerAbility::rts_update()
             ++fireBallCount;
             if (fireBallCount >= FIRE_BALL_COUNT)
             {
-                Globals::pMap->destroyAbility(this);
+                markForDeletion();
                 break;
             }
         }
-        release();
     }
 }
 
@@ -47,17 +44,15 @@ void FireShowerAbility::render()
     Ability::render();
 }
 
-void FireShowerAbility::trigger(const Vector2 &in_position)
+void FireShowerAbility::triggerAbility(const Vector2 &in_position)
 {
-    Ability::trigger(in_position);
+    Ability::triggerAbility(in_position);
 
-    auto pInstance = new FireShowerAbility(*this);
-    Globals::pMap->spawnAbility(pInstance);
-    pInstance->isInstance = true;
-    pInstance->triggerOnField(in_position);
-}
-
-void FireShowerAbility::triggerOnField(const Vector2 &in_position)
-{
-    position = in_position;
+    if (pOwner)
+    {
+        auto pAbility = dynamic_cast<FireShowerAbility*>(Globals::pMap->spawn(in_position, eUnitType::ABILITY_FIRE_SHOWER, pOwner->team));
+        pAbility->isInstance = true;
+        pAbility->pOwner = pOwner;
+        pAbility->onSpawn();
+    }
 }

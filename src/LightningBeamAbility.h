@@ -4,17 +4,21 @@
 class LightningBeamAbility : public Ability
 {
 public:
-    LightningBeamAbility(Unit *in_pOwner);
+    LightningBeamAbility();
 
     const char* iconFilename() const { return "icons/ability_lightningBeam.png"; };
 
     void rts_update() override;
     void render() override;
-    void trigger(const Vector2 &position) override;
-    void triggerOnField(const Vector2 &position) override;
+    void triggerAbility(Unit *in_pTarget) override;
+    void onSpawn() override;
 
-    eAbilityType getType() const override { return eAbilityType::TARGET; }
-    eAbilityUsage getUsage() const override { return eAbilityUsage::ACTIVE; }
-    float getRange() const { return 8.f; }
-    float getCoolDown() const { return 5.f; }
+    eAbilityType getAbilityType() const override { return eAbilityType::TARGET; }
+    eAbilityUsage getAbilityUsage() const override { return eAbilityUsage::ACTIVE; }
+    float getAbilityRange() const override { return 8.f; }
+    float getAbilityCoolDown() const override { return 5.f; }
+
+    float beamDuration = 2.5f;
+    float beamAnim = 0.f;
+    float beamDamageDelay = 0.f;
 };

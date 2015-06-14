@@ -5,11 +5,11 @@
 
 Hero::Hero()
 {
-    abilities.push_back(new FireShowerAbility(this));
-    abilities.push_back(new LightningBeamAbility(this));
+    abilities.push_back(new FireShowerAbility());
+    abilities.push_back(new LightningBeamAbility());
     for (auto pAbility : abilities)
     {
-        pAbility->retain();
+        pAbility->pOwner = this;
     }
 }
 
@@ -17,8 +17,7 @@ Hero::~Hero()
 {
     for (auto pAbility : abilities)
     {
-        pAbility->pOwner = nullptr;
-        pAbility->release();
+        delete pAbility;
     }
 }
 

@@ -1,6 +1,6 @@
 #pragma once
-#include <cinttypes>
 #include "onut.h"
+#include "Unit.h"
 
 enum class eAbilityType : uint8_t
 {
@@ -16,34 +16,30 @@ enum class eAbilityUsage : uint8_t
     ACTIVE
 };
 
-class Unit;
-
-class Ability : public onut::Object
+class Ability : public Unit
 {
 public:
-    Ability(Unit *in_pOwner);
+    Ability();
 
     virtual const char* iconFilename() const = 0;
-    virtual void trigger(const Vector2 &in_position);
-    virtual void triggerOnField(const Vector2 &in_position) {}
-    virtual void activate();
-    void cancel() { isActive = false; }
+    virtual void triggerAbility(const Vector2 &in_position);
+    virtual void triggerAbility(Unit *in_pTarget);
+    virtual void activateAbility();
+    void cancelAbility() { isAbilityActive = false; }
 
-    virtual void rts_update();
-    virtual void render();
+    virtual void rts_update() override;
+    virtual void render() override;
 
-    bool canUse() const { return coolDown <= 0.f; }
+    bool canUseAbility() const { return abilityCoolDown <= 0.f; }
 
     // Type info
-    virtual eAbilityType    getType() const = 0;
-    virtual eAbilityUsage   getUsage() const = 0;
-    virtual float           getRadius() const { return 0.f; }
-    virtual float           getRange() const { return 0.f; }
-    virtual float           getCoolDown() const { return 0.f; }
+    virtual eAbilityType    getAbilityType() const = 0;
+    virtual eAbilityUsage   getAbilityUsage() const = 0;
+    virtual float           getAbilityRadius() const { return 0.f; }
+    virtual float           getAbilityRange() const { return 0.f; }
+    virtual float           getAbilityCoolDown() const { return 0.f; }
 
-    Unit *pOwner = nullptr;
-    bool isActive = false;
-    Vector2 position;
+    bool isAbilityActive = false;
     bool isInstance = false;
-    float coolDown = 0;
+    float abilityCoolDown = 0;
 };

@@ -11,6 +11,8 @@
 #include "Hero.h"
 #include "SpawnPoint.h"
 #include "FallingFireBall.h"
+#include "FireShowerAbility.h"
+#include "LightningBeamAbility.h"
 
 extern onut::UIContext *g_pUIContext;
 void hookButtonSounds(onut::UIControl *pScreen);
@@ -307,6 +309,21 @@ void Globals::init()
         u.damageRadius = 1.0f;
         u.anims[BALT_DOWN | BALT_IDLE] = FX::s_FXAnims[FX_ANIM_FIRE_BALL];
         unitTypes[eUnitType::FALLING_FIRE_BALL] = u;
+    }
+    {
+        sUnitType u;
+        u.category = eUnitCategory::ABILITY;
+        u.pFactory = new UnitFactory<FireShowerAbility>();
+        unitTypes[eUnitType::ABILITY_FIRE_SHOWER] = u;
+    }
+    {
+        sUnitType u;
+        u.category = eUnitCategory::ABILITY;
+        u.pFactory = new UnitFactory<LightningBeamAbility>();
+        u.renderOnTop = true;
+        u.damage = 10.f;
+        u.pTexture = OGetTexture("lightningBeam.png");
+        unitTypes[eUnitType::ABILITY_LIGTHNING_BEAM] = u;
     }
 
     // Sounds

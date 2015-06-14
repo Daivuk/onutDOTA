@@ -148,11 +148,11 @@ Game::Game()
             {
                 for (auto pAbility : pMyHero->abilities)
                 {
-                    pAbility->cancel();
+                    pAbility->cancelAbility();
                 }
-                if (pMyHero->abilities[0]->canUse())
+                if (pMyHero->abilities[0]->canUseAbility())
                 {
-                    pMyHero->abilities[0]->activate();
+                    pMyHero->abilities[0]->activateAbility();
                 }
             }
         }
@@ -167,11 +167,11 @@ Game::Game()
             {
                 for (auto pAbility : pMyHero->abilities)
                 {
-                    pAbility->cancel();
+                    pAbility->cancelAbility();
                 }
-                if (pMyHero->abilities[1]->canUse())
+                if (pMyHero->abilities[1]->canUseAbility())
                 {
-                    pMyHero->abilities[1]->activate();
+                    pMyHero->abilities[1]->activateAbility();
                 }
             }
         }

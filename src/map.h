@@ -65,6 +65,8 @@ public:
         return std::move(ret);
     }
     TList<Unit> *getUnits() const { return pUnits; }
+    Unit *getEnemyUnitAt(const Vector2 &position, int team);
+    Unit *getUnitAt(const Vector2 &position);
 
     sMapChunk *getChunkAt(const Vector2 &pos)
     {
@@ -84,9 +86,6 @@ public:
     void* xyToNode(int x, int y);
     bool passable(int x, int y);
 
-    void spawnAbility(Ability *pAbility);
-    void destroyAbility(Ability *pAbility);
-
 public:
     onut::TiledMap m_tiledMap;
     sMapChunk *pChunks;
@@ -101,5 +100,4 @@ public:
     int chunkYCount = 0;
     OPool *pFXPool = nullptr;
     OPool *pDecalPool = nullptr;
-    std::vector<Ability *> abilities;
 };

@@ -2,57 +2,80 @@
 #include "Unit.h"
 #include "Globals.h"
 
-Ability::Ability(Unit *in_pOwner)
-    : pOwner(in_pOwner)
+Ability::Ability()
 {
 }
 
-void Ability::trigger(const Vector2 &in_position)
+void Ability::triggerAbility(const Vector2 &in_position)
 {
     position = in_position;
-    coolDown = getCoolDown();
+    abilityCoolDown = getAbilityCoolDown();
 }
 
-void Ability::activate()
+void Ability::triggerAbility(Unit *in_pTarget)
 {
-    switch (getType())
+    abilityCoolDown = getAbilityCoolDown();
+}
+
+void Ability::activateAbility()
+{
+    switch (getAbilityType())
     {
         case eAbilityType::AREA:
-            trigger(pOwner->position);
+            triggerAbility(pOwner->position);
             break;
         case eAbilityType::LINE:
-            isActive = true;
+            isAbilityActive = true;
             break;
         case eAbilityType::TARGET:
-            isActive = true;
+            isAbilityActive = true;
             break;
         case eAbilityType::TARGET_AREA:
-            isActive = true;
+            isAbilityActive = true;
             break;
     }
 }
 
 void Ability::rts_update()
 {
-    if (coolDown > 0)
+    if (abilityCoolDown > 0)
     {
-        coolDown -= ODT;
+        abilityCoolDown -= ODT;
     }
-    if (isActive)
+    if (isAbilityActive)
     {
         if (OInput->isStateJustDown(DIK_ESCAPE) ||
             OInput->isStateJustDown(DIK_MOUSEB2))
         {
-            cancel();
+            cancelAbility();
         }
         else if (OInput->isStateJustDown(DIK_MOUSEB1))
         {
             auto mapPos = Globals::pMap->screenToMap(OMousePos);
-            bool isInRange = Vector2::DistanceSquared(pOwner->position, mapPos) <= getRange() * getRange();
+            bool isInRange = Vector2::DistanceSquared(pOwner->position, mapPos) <= getAbilityRange() * getAbilityRange();
             if (isInRange)
             {
-                cancel();
-                trigger(mapPos);
+                cancelAbility();
+                switch (getAbilityType())
+                {
+                    case eAbilityType::TARGET:
+                    {
+                        if (pOwner)
+                        {
+                            auto pTarget = Globals::pMap->getUnitAt(mapPos);
+                            if (pTarget)
+                            {
+                                triggerAbility(pTarget);
+                            }
+                        }
+                        break;
+                    }
+                case eAbilityType::TARGET_AREA:
+                    triggerAbility(mapPos);
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
@@ -60,28 +83,40 @@ void Ability::rts_update()
 
 void Ability::render()
 {
-    if (isActive)
+    if (isAbilityActive)
     {
         auto mapPos = Globals::pMap->screenToMap(OMousePos);
-        switch (getType())
+        switch (getAbilityType())
         {
             case eAbilityType::AREA:
                 break;
             case eAbilityType::LINE:
                 break;
             case eAbilityType::TARGET:
-                break;
-            case eAbilityType::TARGET_AREA:
             {
-                OSB->drawSprite(OGetTexture("dashedrange.png"), pOwner->position, {1, 1, 1, .5f}, 0.f, getRange() / 246.f);
-                bool isInRange = Vector2::DistanceSquared(pOwner->position, mapPos) <= getRange() * getRange();
-                if (isInRange)
+                auto pTarget = Globals::pMap->getUnitAt(mapPos);
+                OSB->drawSprite(OGetTexture("dashedrange.png"), pOwner->position, {1, 1, 1, .5f}, 0.f, getAbilityRange() / 246.f);
+                if (pTarget)
                 {
-                    OSB->drawSprite(OGetTexture("abilityTarget.png"), mapPos, {.5f, 1, .5f, 1}, 0.f, getRadius() / 62.f);
+                    OSB->drawSprite(OGetTexture("target.png"), mapPos, {1, 0, 0, 1}, 0.f, 1.5f / 40.f);
                 }
                 else
                 {
-                    OSB->drawSprite(OGetTexture("abilityTarget.png"), mapPos, {1, 0, 0, 1}, 0.f, getRadius() / 62.f);
+                    OSB->drawSprite(OGetTexture("target.png"), mapPos, {.5f, 1, .5f, 1}, 0.f, 1.5f / 40.f);
+                }
+                break;
+            }
+            case eAbilityType::TARGET_AREA:
+            {
+                OSB->drawSprite(OGetTexture("dashedrange.png"), pOwner->position, {1, 1, 1, .5f}, 0.f, getAbilityRange() / 246.f);
+                bool isInRange = Vector2::DistanceSquared(pOwner->position, mapPos) <= getAbilityRange() * getAbilityRange();
+                if (isInRange)
+                {
+                    OSB->drawSprite(OGetTexture("abilityTarget.png"), mapPos, {.5f, 1, .5f, 1}, 0.f, getAbilityRadius() / 62.f);
+                }
+                else
+                {
+                    OSB->drawSprite(OGetTexture("abilityTarget.png"), mapPos, {1, 0, 0, 1}, 0.f, getAbilityRadius() / 62.f);
                 }
                 break;
             }

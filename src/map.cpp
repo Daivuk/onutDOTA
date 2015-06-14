@@ -190,10 +190,6 @@ Map::Map(int seed)
 
 Map::~Map()
 {
-    for (auto pAbility : abilities)
-    {
-        pAbility->release();
-    }
     if (pFXPool) delete pFXPool;
     if (pDecalPool) delete pDecalPool;
     if (pDecals) delete pDecals;
@@ -310,7 +306,10 @@ void Map::render()
     }
     for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
-        pUnit->render();
+        if (!pUnit->pType->renderOnTop)
+        {
+            pUnit->render();
+        }
     }
     for (decltype(pFXPool->size()) i = 0; i < pFXPool->size(); ++i)
     {
@@ -320,12 +319,14 @@ void Map::render()
             pFX->render();
         }
     }
-    egStatePop();
-
-    for (auto pAbility : abilities)
+    for (auto pUnit = pUnits->Head(); pUnit; pUnit = pUnits->Next(pUnit))
     {
-        pAbility->render();
+        if (pUnit->pType->renderOnTop)
+        {
+            pUnit->render();
+        }
     }
+    egStatePop();
 
     auto pHero = dynamic_cast<Hero*>(Globals::myUser.pUnit);
     if (pHero)
@@ -386,14 +387,6 @@ void Map::update()
 
 void Map::rts_update()
 {
-    // Abilities
-    static auto abilitiesCopy = abilities;
-    abilitiesCopy = abilities;
-    for (auto pAbility : abilitiesCopy)
-    {
-        pAbility->rts_update();
-    }
-
     // Update FX
     for (auto pDecal = pDecals->Head(); pDecal; )
     {
@@ -674,28 +667,6 @@ Vector2 Map::screenToMap(const Vector2 &screenPos) const
     };
 }
 
-void Map::spawnAbility(Ability *pAbility)
-{
-    pAbility->retain();
-    abilities.push_back(pAbility);
-}
-
-void Map::destroyAbility(Ability *pAbility)
-{
-    pAbility->release();
-    for (decltype(abilities.size()) i = 0; i < abilities.size();)
-    {
-        auto pAbility = abilities[i];
-        if (pAbility == pAbility)
-        {
-            pAbility->release();
-            abilities.erase(abilities.begin() + i);
-            continue;
-        }
-        ++i;
-    }
-}
-
 void Map::splashDamage(const Vector2& position, float damage, float radius, Unit *pFrom)
 {
     // Steer against others
@@ -731,4 +702,81 @@ void Map::splashDamage(const Vector2& position, float damage, float radius, Unit
             }
         }
     }
+}
+
+Unit *Map::getUnitAt(const Vector2 &position)
+{
+    float radius = 1;
+    Unit *pClosest = nullptr;
+
+    // Steer against others
+    int chunkFromX = (int)(position.x - radius) / CHUNK_SIZE;
+    int chunkFromY = (int)(position.y - radius) / CHUNK_SIZE;
+    int chunkToX = (int)(position.x + radius) / CHUNK_SIZE;
+    int chunkToY = (int)(position.y + radius) / CHUNK_SIZE;
+
+    for (int chunkY = chunkFromY; chunkY <= chunkToY; ++chunkY)
+    {
+        for (int chunkX = chunkFromX; chunkX <= chunkToX; ++chunkX)
+        {
+            auto pChunk = Globals::pMap->pChunks + (chunkY * Globals::pMap->chunkXCount + chunkX);
+            for (auto pUnit = pChunk->pUnits->Head(); pUnit; pUnit = pChunk->pUnits->Next(pUnit))
+            {
+                if (pUnit->pType->category == eUnitCategory::GROUND ||
+                    pUnit->pType->category == eUnitCategory::BUILDLING ||
+                    pUnit->pType->category == eUnitCategory::AIR)
+                {
+                    if (pUnit->team != TEAM_NONE)
+                    {
+                        float distance = Vector2::DistanceSquared(pUnit->position, position);
+                        if (distance <= radius)
+                        {
+                            radius = distance;
+                            pClosest = pUnit;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return pClosest;
+}
+
+Unit *Map::getEnemyUnitAt(const Vector2 &position, int team)
+{
+    float radius = 1;
+    Unit *pClosest = nullptr;
+
+    // Steer against others
+    int chunkFromX = (int)(position.x - radius) / CHUNK_SIZE;
+    int chunkFromY = (int)(position.y - radius) / CHUNK_SIZE;
+    int chunkToX = (int)(position.x + radius) / CHUNK_SIZE;
+    int chunkToY = (int)(position.y + radius) / CHUNK_SIZE;
+
+    for (int chunkY = chunkFromY; chunkY <= chunkToY; ++chunkY)
+    {
+        for (int chunkX = chunkFromX; chunkX <= chunkToX; ++chunkX)
+        {
+            auto pChunk = Globals::pMap->pChunks + (chunkY * Globals::pMap->chunkXCount + chunkX);
+            for (auto pUnit = pChunk->pUnits->Head(); pUnit; pUnit = pChunk->pUnits->Next(pUnit))
+            {
+                if (pUnit->pType->category == eUnitCategory::GROUND ||
+                    pUnit->pType->category == eUnitCategory::BUILDLING ||
+                    pUnit->pType->category == eUnitCategory::AIR)
+                {
+                    if (pUnit->team != team &&
+                        pUnit->team != TEAM_NONE)
+                    {
+                        float distance = Vector2::DistanceSquared(pUnit->position, position);
+                        if (distance <= radius)
+                        {
+                            radius = distance;
+                            pClosest = pUnit;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return pClosest;
 }
