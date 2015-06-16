@@ -42,4 +42,5 @@ public:
     bool isAbilityActive = false;
     bool isInstance = false;
     float abilityCoolDown = 0;
+    int index = 0;
 };

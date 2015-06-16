@@ -1,6 +1,7 @@
 #include "Ability.h"
 #include "Unit.h"
 #include "Globals.h"
+#include "commands.h"
 
 Ability::Ability()
 {
@@ -22,8 +23,15 @@ void Ability::activateAbility()
     switch (getAbilityType())
     {
         case eAbilityType::AREA:
-            triggerAbility(pOwner->position);
+        {
+            sCMD_TRIGGER_ABILITY msg;
+            msg.abilityId = (decltype(msg.abilityId))index;
+            msg.mapPos = pOwner->position;
+            msg.ownerId = pOwner->mapId;
+            msg.targetId = 0;
+            Globals::pRTS->sendCommand(CMD_TRIGGER_ABILITY, &msg);
             break;
+        }
         case eAbilityType::LINE:
             isAbilityActive = true;
             break;
@@ -65,14 +73,26 @@ void Ability::rts_update()
                             auto pTarget = Globals::pMap->getUnitAt(mapPos);
                             if (pTarget)
                             {
-                                triggerAbility(pTarget);
+                                sCMD_TRIGGER_ABILITY msg;
+                                msg.abilityId = (decltype(msg.abilityId))index;
+                                msg.mapPos = mapPos;
+                                msg.ownerId = pOwner->mapId;
+                                msg.targetId = pTarget->mapId;
+                                Globals::pRTS->sendCommand(CMD_TRIGGER_ABILITY, &msg);
                             }
                         }
                         break;
                     }
-                case eAbilityType::TARGET_AREA:
-                    triggerAbility(mapPos);
-                    break;
+                    case eAbilityType::TARGET_AREA:
+                    {
+                        sCMD_TRIGGER_ABILITY msg;
+                        msg.abilityId = (decltype(msg.abilityId))index;
+                        msg.mapPos = mapPos;
+                        msg.ownerId = pOwner->mapId;
+                        msg.targetId = 0;
+                        Globals::pRTS->sendCommand(CMD_TRIGGER_ABILITY, &msg);
+                        break;
+                    }
                 default:
                     break;
                 }

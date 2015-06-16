@@ -7,9 +7,11 @@ Hero::Hero()
 {
     abilities.push_back(new FireShowerAbility());
     abilities.push_back(new LightningBeamAbility());
+    int index = 0;
     for (auto pAbility : abilities)
     {
         pAbility->pOwner = this;
+        pAbility->index = index++;
     }
 }
 

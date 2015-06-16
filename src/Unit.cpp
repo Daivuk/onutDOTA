@@ -2,6 +2,8 @@
 #include "map.h"
 #include "Globals.h"
 
+uint32_t g_unitNextId = 1;
+
 static const float UNIT_TARGET_TOUCH_RADIUS = 1.5f;
 static const float UNIT_STEER_RANGE = 0.75f;
 static const float UNIT_TARGET_ESCAPE_RANGE = 15.f;

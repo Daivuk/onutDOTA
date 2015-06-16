@@ -111,6 +111,7 @@ Map::Map(int seed)
                     }
                 }
                 pUnit->mapId = pObject.id;
+                g_unitNextId = std::max<>(g_unitNextId, pUnit->mapId) + 1;
             }
         }
     }
