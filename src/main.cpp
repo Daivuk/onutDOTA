@@ -167,6 +167,11 @@ int CALLBACK WinMain(
                                  onut::UI2Onut(pControl->scale9Component.image.color));
         });
 
+        g_pUIContext->addStyle<onut::UIImage>("minimap", [=](const onut::UIImage* pControl, const onut::sUIRect& rect)
+        {
+            OSB->drawRect((onut::Texture*)pControl->pUserData, onut::UI2Onut(rect));
+        });
+
         g_pUIContext->drawRect = [=](onut::UIControl *pControl, const onut::sUIRect &rect, const onut::sUIColor &color)
         {
             OSB->drawRect(nullptr, onut::UI2Onut(rect), onut::UI2Onut(color));

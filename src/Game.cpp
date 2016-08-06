@@ -118,6 +118,7 @@ Game::Game()
     pAbilityBtn = pUIScreen->getChild<onut::UIButton>("btnAbility");
     pAbilityBtn->retain();
     pAbilityBtn->remove();
+    pUIScreen->getChild<onut::UIImage>("minimap")->pUserData = Globals::pMap->m_tiledMap.getMinimap();
 
     // Add player abilities
     if (pMyHero)
@@ -252,6 +253,8 @@ void Game::spawnMinions()
 
 void Game::render()
 {
+    //pUIScreen->getChild<onut::UIImage>("minimap")->pUserData = Globals::pMap->m_tiledMap.getMinimap();
+
     Globals::pMap->render();
 }
 
